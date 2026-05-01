@@ -39,21 +39,6 @@ export default function Landing() {
           style={{ y: heroY, opacity: heroOpacity, scale: heroScale }}
           className="relative z-10 max-w-5xl text-center"
         >
-          <motion.div
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-            className="inline-flex items-center gap-2 mb-8 px-4 py-2 rounded-full bg-white/60 backdrop-blur-xl border border-white/50 shadow-glass"
-          >
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-primary opacity-60 animate-ping" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
-            </span>
-            <span className="text-xs font-bold uppercase tracking-[0.2em] text-primary">
-              Clinical Sanctuary, in your pocket
-            </span>
-          </motion.div>
-
           <motion.h1
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -64,7 +49,8 @@ export default function Landing() {
             }}
             className="text-balance font-extrabold tracking-tighter leading-[0.95] text-[clamp(2.75rem,8vw,7rem)] text-on-surface"
           >
-            Master your surgery <span className="block gradient-text">journey.</span>
+            Master your surgery{" "}
+            <span className="block gradient-text pb-2">journey.</span>
           </motion.h1>
 
           <motion.p
