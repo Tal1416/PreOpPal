@@ -9,7 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ai-sdk/google": "^3.0.66",
     "@studio-freight/lenis": "^1.0.42",
+    "ai": "^6.0.172",
     "framer-motion": "^11.11.17",
     "next": "^16.0.0",
     "react": "^19.0.0",

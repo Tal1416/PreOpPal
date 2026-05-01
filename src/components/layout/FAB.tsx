@@ -3,9 +3,11 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { useAI, SUGGESTIONS } from "@/components/ai/ai-store";
+import { useProfile } from "@/lib/profile-context";
 
 export default function FAB() {
   const ai = useAI();
+  const { profile } = useProfile();
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -19,7 +21,7 @@ export default function FAB() {
 
   function send() {
     if (!input.trim()) return;
-    ai.send(input);
+    ai.send(input, profile);
     setInput("");
   }
 
@@ -157,7 +159,7 @@ export default function FAB() {
                       </div>
                     )}
                     <div
-                      className={`max-w-[80%] px-3.5 py-2 rounded-2xl text-[14px] leading-snug ${
+                      className={`max-w-[80%] px-3.5 py-2 rounded-2xl text-[14px] leading-snug whitespace-pre-wrap break-words ${
                         msg.from === "user"
                           ? "bg-primary text-white rounded-br-md"
                           : "bg-white text-on-surface rounded-bl-md border border-white"
@@ -217,7 +219,7 @@ export default function FAB() {
                 {SUGGESTIONS.slice(0, 3).map((s) => (
                   <button
                     key={s}
-                    onClick={() => ai.send(s)}
+                    onClick={() => ai.send(s, profile)}
                     className="text-[11px] rounded-full bg-primary-fixed/40 text-primary border border-primary/20 px-2.5 py-1 hover:bg-primary hover:text-white transition-colors"
                   >
                     {s}

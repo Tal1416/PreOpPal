@@ -13,8 +13,9 @@ import ScrollReveal, {
   StaggerItem,
 } from "@/components/ui/ScrollReveal";
 import AICompanionCard from "@/components/ai/AICompanionCard";
-import { todayTasks, careTeam, Task } from "@/data/content";
+import { todayTasks, careTeam, personalize, Task } from "@/data/content";
 import { useProfile } from "@/lib/profile-context";
+import { formatSurgeryDate } from "@/lib/date";
 
 export default function Dashboard() {
   const { profile, readinessScore, hydrated } = useProfile();
@@ -32,6 +33,7 @@ export default function Dashboard() {
   }
 
   const greetingName = profile.firstName?.trim() || "friend";
+  const surgeryDateLabel = formatSurgeryDate(profile.surgeryDate);
 
   return (
     <PageShell>
@@ -48,7 +50,7 @@ export default function Dashboard() {
               </h1>
               <p className="mt-3 text-on-surface-variant text-lg max-w-xl">
                 You're doing great. Everything is on track for{" "}
-                {profile.surgeryDate}.
+                {surgeryDateLabel}.
               </p>
             </div>
             <div className="flex items-center gap-2 rounded-full bg-white/60 backdrop-blur-xl px-4 py-2 border border-white/60 shadow-glass">
@@ -56,7 +58,7 @@ export default function Dashboard() {
                 event
               </span>
               <span className="text-sm font-bold text-on-surface">
-                {profile.surgeryDate}
+                {surgeryDateLabel}
               </span>
             </div>
           </div>
@@ -193,10 +195,10 @@ export default function Dashboard() {
                               : "text-on-surface"
                           }`}
                         >
-                          {t.title}
+                          {personalize(t.title, profile)}
                         </h4>
                         <p className="text-sm text-on-surface-variant truncate">
-                          {t.description}
+                          {personalize(t.description, profile)}
                         </p>
                       </div>
                       <AnimatePresence mode="wait">
@@ -260,7 +262,12 @@ export default function Dashboard() {
         </ScrollReveal>
 
         <StaggerGroup className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {careTeam.map((m) => (
+          {careTeam.map((member, idx) => {
+            const m =
+              idx === 0 && profile.surgeon?.trim()
+                ? { ...member, name: profile.surgeon.trim() }
+                : member;
+            return (
             <StaggerItem key={m.id}>
               <GlassCard className="p-5 text-center">
                 <div className="relative inline-block">
@@ -282,7 +289,8 @@ export default function Dashboard() {
                 </button>
               </GlassCard>
             </StaggerItem>
-          ))}
+            );
+          })}
         </StaggerGroup>
       </div>
     </PageShell>

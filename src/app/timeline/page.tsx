@@ -8,9 +8,11 @@ import ScrollReveal, {
   StaggerGroup,
   StaggerItem,
 } from "@/components/ui/ScrollReveal";
-import { phases } from "@/data/content";
+import { phases, personalize } from "@/data/content";
+import { useProfile } from "@/lib/profile-context";
 
 export default function Timeline() {
+  const { profile } = useProfile();
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -30,8 +32,12 @@ export default function Timeline() {
             <span className="gradient-text-static">One calm path.</span>
           </h1>
           <p className="mt-4 text-on-surface-variant text-lg max-w-2xl">
-            Each phase surfaces only the instructions you need at that moment.
-            Nothing more, nothing surfaced too early.
+            Tailored to your{" "}
+            <span className="font-semibold text-on-surface">
+              {profile.procedure?.trim() || "procedure"}
+            </span>
+            . Each phase surfaces only the instructions you need at that moment —
+            nothing surfaced too early.
           </p>
         </ScrollReveal>
 
@@ -149,10 +155,10 @@ export default function Timeline() {
                         </span>
                         <div>
                           <p className="text-sm font-bold text-on-surface">
-                            {h.title}
+                            {personalize(h.title, profile)}
                           </p>
                           <p className="text-sm text-on-surface-variant">
-                            {h.detail}
+                            {personalize(h.detail, profile)}
                           </p>
                         </div>
                       </li>

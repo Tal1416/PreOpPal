@@ -7,8 +7,8 @@ export type Profile = {
   patientId: string;
   procedure: string;
   surgeon: string;
-  surgeryDate: string; // human-readable, e.g. "June 24, 2026"
-  daysToSurgery: number;
+  surgeryDate: string; // ISO YYYY-MM-DD, e.g. "2026-06-24"
+  daysToSurgery: number; // derived from surgeryDate at read time
   hospitalName: string;
   hospitalAddress: string;
   hospitalCoords: string; // lat,lng for Google Maps
@@ -35,8 +35,8 @@ export const defaultProfile: Profile = {
   patientId: "4920",
   procedure: "Knee Replacement",
   surgeon: "Dr. Sarah Chen",
-  surgeryDate: "June 24, 2026",
-  daysToSurgery: 7,
+  surgeryDate: "2026-06-24",
+  daysToSurgery: 0,
   hospitalName: "Memorial East",
   hospitalAddress: "421 Park Avenue, New York, NY 10022",
   hospitalCoords: "40.7587,-73.9712",

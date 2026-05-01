@@ -8,7 +8,7 @@ import ScrollReveal, {
   StaggerGroup,
   StaggerItem,
 } from "@/components/ui/ScrollReveal";
-import { medications as defaultMedications } from "@/data/content";
+import { medications as defaultMedications, personalize } from "@/data/content";
 import { useProfile } from "@/lib/profile-context";
 
 const STATUS_THEME = {
@@ -135,7 +135,7 @@ export default function Medications() {
                     </span>
                   </div>
                   <p className="text-sm text-on-surface-variant leading-relaxed">
-                    {m.reason}
+                    {personalize(m.reason, profile)}
                   </p>
                 </GlassCard>
               </StaggerItem>

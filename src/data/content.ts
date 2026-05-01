@@ -1,3 +1,24 @@
+/**
+ * Replace `{{surgeon}}`, `{{hospital}}`, `{{procedure}}`, `{{firstName}}` tokens
+ * in static copy with values from the patient profile so every page reflects
+ * what the user entered on the Me / Profile screen.
+ */
+export function personalize(
+  text: string,
+  ctx: {
+    firstName?: string;
+    procedure?: string;
+    surgeon?: string;
+    hospitalName?: string;
+  }
+): string {
+  return text
+    .replace(/\{\{firstName\}\}/g, ctx.firstName?.trim() || "you")
+    .replace(/\{\{procedure\}\}/g, ctx.procedure?.trim() || "your procedure")
+    .replace(/\{\{surgeon\}\}/g, ctx.surgeon?.trim() || "your surgeon")
+    .replace(/\{\{hospital\}\}/g, ctx.hospitalName?.trim() || "your hospital");
+}
+
 export type Task = {
   id: string;
   icon: string;
@@ -66,7 +87,7 @@ export const phases: Phase[] = [
       {
         icon: "favorite",
         title: "Pre-op cardio clearance",
-        detail: "EKG and bloodwork submitted to Dr. Chen.",
+        detail: "EKG and bloodwork submitted to {{surgeon}}.",
       },
       {
         icon: "monitor_heart",
@@ -131,12 +152,12 @@ export const phases: Phase[] = [
       {
         icon: "local_hospital",
         title: "Arrive at 6:00 AM",
-        detail: "Memorial East — Building B, Floor 3.",
+        detail: "{{hospital}} — Building B, Floor 3.",
       },
       {
         icon: "groups",
         title: "Care team briefing",
-        detail: "Dr. Chen and anesthesia will visit.",
+        detail: "{{surgeon}} and anesthesia will visit.",
       },
     ],
   },
@@ -188,7 +209,7 @@ export const medications: Medication[] = [
     dosage: "81mg",
     schedule: "Daily morning",
     status: "stop",
-    reason: "Pause 7 days prior. Resume per Dr. Chen.",
+    reason: "Pause 7 days prior. Resume per {{surgeon}}.",
     daysLeft: 0,
   },
   {
@@ -366,7 +387,7 @@ export const arrivalSteps: ArrivalStep[] = [
   {
     id: "a2",
     time: "6:00 AM",
-    title: "Arrive at Memorial East",
+    title: "Arrive at {{hospital}}",
     description: "Main entrance, Building B. Valet parking is complimentary.",
     icon: "local_hospital",
   },
@@ -390,7 +411,7 @@ export const arrivalSteps: ArrivalStep[] = [
     time: "7:30 AM",
     title: "Meet your care team",
     description:
-      "Dr. Chen will mark the surgical site. Anesthesia confirms the plan.",
+      "{{surgeon}} will mark the surgical site. Anesthesia confirms the plan.",
     icon: "groups",
   },
   {

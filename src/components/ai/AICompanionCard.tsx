@@ -12,7 +12,7 @@ export default function AICompanionCard() {
 
   function ask(text: string) {
     if (!text.trim()) return;
-    ai.send(text);
+    ai.send(text, profile);
     setInput("");
     ai.setOpen(true); // open the drawer so the conversation continues
   }
@@ -95,8 +95,12 @@ export default function AICompanionCard() {
             <span className="text-[#acedff]">Pal.</span>
           </h2>
           <p className="mt-3 text-base md:text-lg text-white/85 max-w-xl leading-relaxed">
-            Ask me anything about your procedure, fasting, medications, or what
-            to expect. I'm here 24/7 — and I'll never judge a question.
+            Ask me anything about your{" "}
+            <span className="font-semibold text-white">
+              {profile.procedure?.trim() || "procedure"}
+            </span>
+            , fasting, medications, or what to expect. I'm here 24/7 — and I'll
+            never judge a question.
           </p>
 
           <form

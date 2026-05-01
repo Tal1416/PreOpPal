@@ -9,6 +9,7 @@ import ScrollReveal, {
   StaggerItem,
 } from "@/components/ui/ScrollReveal";
 import { careTeam, chatSeed, ChatMessage } from "@/data/content";
+import { useProfile } from "@/lib/profile-context";
 
 const REPLIES = [
   "Of course — let's walk through that together.",
@@ -18,7 +19,21 @@ const REPLIES = [
 ];
 
 export default function CareSupport() {
-  const [messages, setMessages] = useState<ChatMessage[]>(chatSeed);
+  const { profile } = useProfile();
+  const team = careTeam.map((m, i) =>
+    i === 0 && profile.surgeon?.trim()
+      ? { ...m, name: profile.surgeon.trim() }
+      : m
+  );
+  const personalizedSeed = chatSeed.map((m) =>
+    m.id === "1"
+      ? {
+          ...m,
+          text: `Hi ${profile.firstName?.trim() || "there"} — I'm Nurse Amelia. I'll be your point of contact this week. How are you feeling about your ${profile.procedure?.trim() || "procedure"}?`,
+        }
+      : m
+  );
+  const [messages, setMessages] = useState<ChatMessage[]>(personalizedSeed);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -85,7 +100,7 @@ export default function CareSupport() {
                 <div className="flex items-center gap-3">
                   <div className="relative">
                     <img
-                      src={careTeam[2].avatar}
+                      src={team[2].avatar}
                       alt=""
                       className="h-12 w-12 rounded-full object-cover ring-2 ring-white"
                     />
@@ -93,7 +108,7 @@ export default function CareSupport() {
                   </div>
                   <div>
                     <h3 className="text-base font-bold text-on-surface">
-                      {careTeam[2].name}
+                      {team[2].name}
                     </h3>
                     <p className="text-xs text-primary font-medium">
                       Online · responds in minutes
@@ -129,7 +144,7 @@ export default function CareSupport() {
                     >
                       {msg.from === "nurse" && (
                         <img
-                          src={careTeam[2].avatar}
+                          src={team[2].avatar}
                           alt=""
                           className="h-8 w-8 rounded-full object-cover ring-1 ring-white shrink-0 self-end"
                         />
@@ -163,7 +178,7 @@ export default function CareSupport() {
                       className="flex gap-3 justify-start"
                     >
                       <img
-                        src={careTeam[2].avatar}
+                        src={team[2].avatar}
                         alt=""
                         className="h-8 w-8 rounded-full object-cover ring-1 ring-white shrink-0 self-end"
                       />
@@ -225,7 +240,7 @@ export default function CareSupport() {
                 Specialists
               </h2>
               <StaggerGroup className="space-y-3">
-                {careTeam.map((m) => (
+                {team.map((m) => (
                   <StaggerItem key={m.id}>
                     <GlassCard className="p-4 flex items-center gap-4" tilt={false}>
                       <div className="relative shrink-0">

@@ -2,12 +2,7 @@
 
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
-import {
-  AnimatePresence,
-  motion,
-  useScroll,
-  useSpring,
-} from "framer-motion";
+import { motion, useScroll, useSpring } from "framer-motion";
 import Lenis from "@studio-freight/lenis";
 
 import GradientMesh from "@/components/ui/GradientMesh";
@@ -57,17 +52,7 @@ export default function Providers({
     <ProfileProvider>
       <GradientMesh />
       <ScrollProgress />
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.div
-          key={pathname}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-        >
-          {children}
-        </motion.div>
-      </AnimatePresence>
+      {children}
     </ProfileProvider>
   );
 }

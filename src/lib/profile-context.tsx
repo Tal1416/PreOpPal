@@ -9,6 +9,7 @@ import {
 } from "react";
 import { defaultProfile, Profile } from "@/data/user";
 import { medications as defaultMedications } from "@/data/content";
+import { daysUntilSurgery, isISODate, toISODate } from "@/lib/date";
 
 const STORAGE_KEY = "preoppal-profile-v1";
 
@@ -72,6 +73,9 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as Partial<Profile>;
+        if (parsed.surgeryDate && !isISODate(parsed.surgeryDate)) {
+          parsed.surgeryDate = toISODate(parsed.surgeryDate);
+        }
         setProfile((cur) => ({ ...cur, ...parsed }));
       }
     } catch {
@@ -94,12 +98,16 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
   const resetProfile = () => setProfile(seedProfile);
 
-  const readinessScore = computeReadiness(profile);
+  const derivedProfile: Profile = {
+    ...profile,
+    daysToSurgery: daysUntilSurgery(profile.surgeryDate),
+  };
+  const readinessScore = computeReadiness(derivedProfile);
 
   return (
     <ProfileCtx.Provider
       value={{
-        profile,
+        profile: derivedProfile,
         hydrated,
         updateProfile,
         setProfile,

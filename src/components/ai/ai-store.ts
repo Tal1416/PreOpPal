@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { PalProfileContext } from "@/lib/pal-prompt";
 
 export type AIMessage = {
   id: string;
@@ -16,25 +17,9 @@ export const SUGGESTIONS = [
   "Walk me through my arrival timing.",
 ];
 
-const SAMPLE_REPLIES: Record<string, string> = {
-  "What can I eat the night before?":
-    "Light, easily digestible food up to 8 hours before — soups, plain rice, lean protein. Then clear liquids only until midnight, and nothing by mouth after that. Your fasting window will be on your timeline closer to the day.",
-  "Should I be worried about anesthesia?":
-    "It's completely normal to feel nervous. Modern anesthesia for your procedure is highly controlled — your anesthesiologist will visit you pre-op, walk through your medication history, and monitor you continuously. I can also queue up a paced-breathing session if you'd like.",
-  "Help me feel calmer right now.":
-    "Let's do a 60-second box breath together. Inhale 4… hold 4… exhale 4… hold 4. Try the orb on your dashboard — I'll stay here while you breathe.",
-  "Walk me through my arrival timing.":
-    "On surgery morning you'll wake at 5:30, arrive at the hospital by 6:00, check in by 6:15, and meet your care team by 7:30. Your full minute-by-minute plan is on the Arrival Guide.",
-};
-
-const FALLBACK_REPLIES = [
-  "That's a great question. The short answer is yes — and I've added more detail to your Timeline so it's there when you need it.",
-  "Totally understandable. Let me check your plan… everything Dr. Chen ordered is consistent with what you're describing.",
-  "I can help with that. Try opening your Timeline — the steps surface in order, so you only see what matters today.",
-  "Good instinct to ask. I've flagged it for your care team so they can confirm at your next check-in.",
-];
-
 let listeners: Set<() => void> = new Set();
+let abortCtrl: AbortController | null = null;
+
 let state = {
   open: false,
   messages: [
@@ -59,6 +44,86 @@ function notify() {
   listeners.forEach((l) => l());
 }
 
+function setState(patch: Partial<typeof state>) {
+  state = { ...state, ...patch };
+  notify();
+}
+
+function patchMessage(id: string, patch: Partial<AIMessage>) {
+  state = {
+    ...state,
+    messages: state.messages.map((m) => (m.id === id ? { ...m, ...patch } : m)),
+  };
+  notify();
+}
+
+async function streamReply(profile: PalProfileContext) {
+  // Build the messages payload from non-seed history.
+  const history = state.messages
+    .filter((m) => m.id !== "seed")
+    .map((m) => ({
+      role: m.from === "user" ? ("user" as const) : ("assistant" as const),
+      content: m.text,
+    }));
+
+  const placeholderId = `a-${Date.now()}`;
+  state = {
+    ...state,
+    typing: true,
+    messages: [
+      ...state.messages,
+      { id: placeholderId, from: "ai", text: "", time: nowTime() },
+    ],
+  };
+  notify();
+
+  abortCtrl?.abort();
+  abortCtrl = new AbortController();
+
+  try {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: history, profile }),
+      signal: abortCtrl.signal,
+    });
+
+    if (!res.ok || !res.body) {
+      const errBody = await res
+        .json()
+        .catch(() => ({ error: "Pal couldn't reach the model." }));
+      patchMessage(placeholderId, {
+        text:
+          errBody.error ??
+          "Pal couldn't reach the model right now. Check your connection and try again.",
+      });
+      setState({ typing: false });
+      return;
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let acc = "";
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      acc += decoder.decode(value, { stream: true });
+      patchMessage(placeholderId, { text: acc });
+    }
+    // Flush any remaining bytes from the decoder (multi-byte tail).
+    acc += decoder.decode();
+    patchMessage(placeholderId, { text: acc });
+    setState({ typing: false });
+  } catch (err) {
+    if ((err as Error).name === "AbortError") return;
+    patchMessage(placeholderId, {
+      text:
+        "I hit a snag reaching the model. Please try again in a moment — and if this keeps happening, your care team is one tap away on the Care page.",
+    });
+    setState({ typing: false });
+  }
+}
+
 export function useAI() {
   const [, force] = useState(0);
   useEffect(() => {
@@ -72,15 +137,9 @@ export function useAI() {
     open: state.open,
     messages: state.messages,
     typing: state.typing,
-    setOpen: (o: boolean) => {
-      state = { ...state, open: o };
-      notify();
-    },
-    toggle: () => {
-      state = { ...state, open: !state.open };
-      notify();
-    },
-    send: (text: string) => {
+    setOpen: (o: boolean) => setState({ open: o }),
+    toggle: () => setState({ open: !state.open }),
+    send: (text: string, profile: PalProfileContext) => {
       const t = text.trim();
       if (!t) return;
       const userMsg: AIMessage = {
@@ -89,32 +148,9 @@ export function useAI() {
         text: t,
         time: nowTime(),
       };
-      state = {
-        ...state,
-        messages: [...state.messages, userMsg],
-        typing: true,
-      };
+      state = { ...state, messages: [...state.messages, userMsg] };
       notify();
-      setTimeout(
-        () => {
-          const reply =
-            SAMPLE_REPLIES[t] ??
-            FALLBACK_REPLIES[Math.floor(Math.random() * FALLBACK_REPLIES.length)];
-          const aiMsg: AIMessage = {
-            id: `a-${Date.now()}`,
-            from: "ai",
-            text: reply,
-            time: nowTime(),
-          };
-          state = {
-            ...state,
-            messages: [...state.messages, aiMsg],
-            typing: false,
-          };
-          notify();
-        },
-        900 + Math.random() * 700
-      );
+      void streamReply(profile);
     },
   };
 }

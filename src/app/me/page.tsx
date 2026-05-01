@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import PageShell from "@/components/layout/PageShell";
 import GlassCard from "@/components/ui/GlassCard";
+import Modal from "@/components/ui/Modal";
 import ScrollReveal from "@/components/ui/ScrollReveal";
 import { useProfile } from "@/lib/profile-context";
 import type { Medication } from "@/data/content";
@@ -58,24 +59,32 @@ function SectionHeader({
   );
 }
 
+const emptyMedication: Omit<Medication, "id"> = {
+  name: "",
+  dosage: "",
+  schedule: "",
+  status: "continue",
+  reason: "",
+};
+
 export default function MePage() {
   const { profile, updateProfile, resetProfile, readinessScore } = useProfile();
   const [saved, setSaved] = useState(false);
+  const [medModalOpen, setMedModalOpen] = useState(false);
+  const [draftMed, setDraftMed] = useState<Omit<Medication, "id">>(emptyMedication);
 
-  function pushMedication() {
+  function openMedicationModal() {
+    setDraftMed(emptyMedication);
+    setMedModalOpen(true);
+  }
+
+  function saveDraftMedication() {
+    if (!draftMed.name.trim()) return;
     const id = `m-${Date.now()}`;
-    const next: Medication[] = [
-      ...profile.medications,
-      {
-        id,
-        name: "",
-        dosage: "",
-        schedule: "",
-        status: "continue",
-        reason: "",
-      },
-    ];
-    updateProfile({ medications: next });
+    updateProfile({
+      medications: [...profile.medications, { id, ...draftMed }],
+    });
+    setMedModalOpen(false);
   }
 
   function updateMedication(id: string, patch: Partial<Medication>) {
@@ -215,27 +224,26 @@ export default function MePage() {
               </Field>
               <Field label="Surgery date">
                 <input
+                  type="date"
                   className={inputCls}
                   value={profile.surgeryDate}
                   onChange={(e) =>
                     updateProfile({ surgeryDate: e.target.value })
                   }
-                  placeholder="June 24, 2026"
                 />
               </Field>
               <Field label="Days until surgery">
-                <input
-                  type="number"
-                  min={0}
-                  className={inputCls}
-                  value={profile.daysToSurgery || ""}
-                  onChange={(e) =>
-                    updateProfile({
-                      daysToSurgery: Number(e.target.value) || 0,
-                    })
-                  }
-                  placeholder="7"
-                />
+                <div
+                  className={`${inputCls} flex items-center justify-between cursor-not-allowed bg-white/40 text-on-surface-variant`}
+                  aria-readonly="true"
+                >
+                  <span className="tabular-nums font-bold text-on-surface">
+                    {profile.daysToSurgery}
+                  </span>
+                  <span className="text-[10px] uppercase tracking-widest">
+                    Auto
+                  </span>
+                </div>
               </Field>
               <Field label="Hospital">
                 <input
@@ -350,7 +358,7 @@ export default function MePage() {
                 description="What you take today. Mark which to stop, continue, or add."
               />
               <button
-                onClick={pushMedication}
+                onClick={openMedicationModal}
                 className="rounded-xl bg-primary text-on-primary px-4 py-2.5 text-sm font-bold flex items-center gap-2 hover:shadow-glow-teal transition-all"
               >
                 <span className="material-symbols-outlined text-base">add</span>
@@ -596,6 +604,98 @@ export default function MePage() {
           </div>
         </div>
       </div>
+
+      <Modal
+        open={medModalOpen}
+        onClose={() => setMedModalOpen(false)}
+        title="Add medication"
+        description="Capture what you take so we can flag what to stop or continue."
+        icon="medication"
+        footer={
+          <>
+            <button
+              onClick={() => setMedModalOpen(false)}
+              className="text-sm font-bold uppercase tracking-widest text-on-surface-variant hover:text-on-surface transition-colors px-3 py-2"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={saveDraftMedication}
+              disabled={!draftMed.name.trim()}
+              className="rounded-xl bg-primary text-on-primary px-5 py-2.5 text-sm font-bold flex items-center gap-2 hover:shadow-glow-teal transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span className="material-symbols-outlined text-base">add</span>
+              Add medication
+            </button>
+          </>
+        }
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="md:col-span-2">
+            <Field label="Name">
+              <input
+                autoFocus
+                className={inputCls}
+                value={draftMed.name}
+                onChange={(e) =>
+                  setDraftMed((d) => ({ ...d, name: e.target.value }))
+                }
+                placeholder="Ibuprofen"
+              />
+            </Field>
+          </div>
+          <Field label="Dosage">
+            <input
+              className={inputCls}
+              value={draftMed.dosage}
+              onChange={(e) =>
+                setDraftMed((d) => ({ ...d, dosage: e.target.value }))
+              }
+              placeholder="200mg"
+            />
+          </Field>
+          <Field label="Schedule">
+            <input
+              className={inputCls}
+              value={draftMed.schedule}
+              onChange={(e) =>
+                setDraftMed((d) => ({ ...d, schedule: e.target.value }))
+              }
+              placeholder="Daily morning"
+            />
+          </Field>
+          <div className="md:col-span-2">
+            <Field label="Status">
+              <select
+                className={inputCls}
+                value={draftMed.status}
+                onChange={(e) =>
+                  setDraftMed((d) => ({
+                    ...d,
+                    status: e.target.value as Medication["status"],
+                  }))
+                }
+              >
+                <option value="continue">Continue</option>
+                <option value="stop">Stop before surgery</option>
+                <option value="new">New (post-op)</option>
+              </select>
+            </Field>
+          </div>
+          <div className="md:col-span-2">
+            <Field label="Reason / notes">
+              <input
+                className={inputCls}
+                value={draftMed.reason}
+                onChange={(e) =>
+                  setDraftMed((d) => ({ ...d, reason: e.target.value }))
+                }
+                placeholder="Increases bleeding risk during surgery."
+              />
+            </Field>
+          </div>
+        </div>
+      </Modal>
     </PageShell>
   );
 }

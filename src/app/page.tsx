@@ -50,7 +50,7 @@ export default function Landing() {
             className="text-balance font-extrabold tracking-tighter leading-[0.95] text-[clamp(2.75rem,8vw,7rem)] text-on-surface"
           >
             Master your surgery{" "}
-            <span className="block gradient-text pb-2">journey.</span>
+            <span className="block gradient-text leading-[1.15] pb-[0.15em]">journey.</span>
           </motion.h1>
 
           <motion.p
@@ -280,13 +280,14 @@ export default function Landing() {
               Readiness Score
             </p>
             <h2 className="text-balance text-4xl md:text-5xl font-extrabold tracking-tight text-on-surface mb-6">
-              One number you can{" "}
-              <span className="gradient-text-static">trust.</span>
+              Your surgery{" "}
+              <span className="gradient-text-static">North Star.</span>
             </h2>
             <p className="text-on-surface-variant text-lg leading-relaxed">
-              Every confirmation, every medication paused, every form signed —
-              quietly tracked into a single, honest score. No anxiety-inducing
-              red flags. No nagging.
+              We track the complexities so your mind can stay quiet. Every
+              requirement met, every medication synced—all condensed into one
+              honest score. No nagging, no red flags, just clarity when you
+              need it most.
             </p>
             <Link
               href="/dashboard"

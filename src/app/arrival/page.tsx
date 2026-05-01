@@ -5,7 +5,7 @@ import { useRef } from "react";
 import PageShell from "@/components/layout/PageShell";
 import GlassCard from "@/components/ui/GlassCard";
 import ScrollReveal from "@/components/ui/ScrollReveal";
-import { arrivalSteps } from "@/data/content";
+import { arrivalSteps, personalize } from "@/data/content";
 import { useProfile } from "@/lib/profile-context";
 
 export default function ArrivalGuide() {
@@ -83,14 +83,14 @@ export default function ArrivalGuide() {
                 <div className="flex-1 pt-1">
                   <div className="flex flex-wrap items-baseline justify-between gap-2 mb-2">
                     <h3 className="text-xl md:text-2xl font-extrabold text-on-surface">
-                      {s.title}
+                      {personalize(s.title, profile)}
                     </h3>
                     <span className="rounded-full bg-primary-fixed/40 text-primary px-3 py-1 text-xs font-bold tracking-widest tabular-nums">
                       {s.time}
                     </span>
                   </div>
                   <p className="text-on-surface-variant leading-relaxed">
-                    {s.description}
+                    {personalize(s.description, profile)}
                   </p>
                 </div>
               </GlassCard>
