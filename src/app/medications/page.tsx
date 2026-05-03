@@ -122,12 +122,6 @@ export default function Medications() {
                     m.status === "stop" ? "border-l-4 border-error" : ""
                   }`}
                 >
-                  {m.status === "stop" && (
-                    <motion.span
-                      aria-hidden
-                      className="absolute top-6 right-6 h-3 w-3 rounded-full bg-error animate-pulse-error"
-                    />
-                  )}
                   <div className="flex items-start justify-between gap-4 mb-4">
                     <div>
                       <h3 className="text-2xl font-extrabold text-on-surface">
