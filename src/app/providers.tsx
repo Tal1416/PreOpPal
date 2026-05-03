@@ -9,6 +9,7 @@ import GradientMesh from "@/components/ui/GradientMesh";
 import PhoneFrame from "@/components/layout/PhoneFrame";
 import ViewModeToggle from "@/components/layout/ViewModeToggle";
 import { ProfileProvider } from "@/lib/profile-context";
+import { AuthProvider } from "@/lib/auth-context";
 import { ViewModeProvider, useViewMode } from "@/lib/view-mode-context";
 
 function ScrollProgress() {
@@ -64,12 +65,14 @@ export default function Providers({
   }, [pathname]);
 
   return (
-    <ProfileProvider>
-      <ViewModeProvider>
-        <GradientMesh />
-        <ScrollProgress />
-        <ViewModeShell>{children}</ViewModeShell>
-      </ViewModeProvider>
-    </ProfileProvider>
+    <AuthProvider>
+      <ProfileProvider>
+        <ViewModeProvider>
+          <GradientMesh />
+          <ScrollProgress />
+          <ViewModeShell>{children}</ViewModeShell>
+        </ViewModeProvider>
+      </ProfileProvider>
+    </AuthProvider>
   );
 }

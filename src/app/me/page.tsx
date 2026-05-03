@@ -6,6 +6,7 @@ import PageShell from "@/components/layout/PageShell";
 import GlassCard from "@/components/ui/GlassCard";
 import Modal from "@/components/ui/Modal";
 import ScrollReveal from "@/components/ui/ScrollReveal";
+import AuthGuard from "@/components/auth/AuthGuard";
 import { useProfile } from "@/lib/profile-context";
 import { useViewMode } from "@/lib/view-mode-context";
 import MeMobile from "@/components/mobile/MeMobile";
@@ -69,7 +70,7 @@ const emptyMedication: Omit<Medication, "id"> = {
   reason: "",
 };
 
-export default function MePage() {
+function MePageInner() {
   const { profile, updateProfile, resetProfile, readinessScore } = useProfile();
   const { isEmbed } = useViewMode();
   const [saved, setSaved] = useState(false);
@@ -708,5 +709,13 @@ export default function MePage() {
         </div>
       </Modal>
     </PageShell>
+  );
+}
+
+export default function MePage() {
+  return (
+    <AuthGuard>
+      <MePageInner />
+    </AuthGuard>
   );
 }

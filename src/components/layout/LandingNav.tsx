@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/lib/auth-context";
 
 const NAV_LINKS = [
   { to: "/dashboard", label: "Dashboard" },
@@ -17,6 +19,8 @@ const NAV_LINKS = [
 export default function LandingNav() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { isAuthenticated, hydrated, signOut } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     function onScroll() {
@@ -69,6 +73,30 @@ export default function LandingNav() {
 
           {/* CTA + mobile menu */}
           <div className="flex items-center gap-2">
+            {hydrated && isAuthenticated ? (
+              <button
+                onClick={() => {
+                  signOut();
+                  router.push("/");
+                }}
+                className="hidden sm:inline-flex items-center gap-1 rounded-full bg-white/70 border border-white/70 text-primary px-4 py-2 text-xs font-bold uppercase tracking-widest hover:bg-white transition-all active:scale-95"
+              >
+                Sign out
+                <span className="material-symbols-outlined text-base">
+                  logout
+                </span>
+              </button>
+            ) : (
+              <Link
+                href="/login"
+                className="hidden sm:inline-flex items-center gap-1 rounded-full bg-white/70 border border-white/70 text-primary px-4 py-2 text-xs font-bold uppercase tracking-widest hover:bg-white transition-all active:scale-95"
+              >
+                Sign in
+                <span className="material-symbols-outlined text-base">
+                  login
+                </span>
+              </Link>
+            )}
             <Link
               href="/dashboard"
               className="hidden sm:inline-flex items-center gap-1 rounded-full bg-primary text-on-primary px-4 py-2 text-xs font-bold uppercase tracking-widest hover:shadow-glow-teal transition-all active:scale-95"
@@ -122,6 +150,32 @@ export default function LandingNav() {
                     arrow_forward
                   </span>
                 </Link>
+                {hydrated && isAuthenticated ? (
+                  <button
+                    onClick={() => {
+                      setOpen(false);
+                      signOut();
+                      router.push("/");
+                    }}
+                    className="col-span-2 rounded-xl bg-white/80 border border-white/70 text-primary px-4 py-3 text-sm font-bold flex items-center justify-center gap-2"
+                  >
+                    Sign out
+                    <span className="material-symbols-outlined text-base">
+                      logout
+                    </span>
+                  </button>
+                ) : (
+                  <Link
+                    href="/login"
+                    onClick={() => setOpen(false)}
+                    className="col-span-2 rounded-xl bg-white/80 border border-white/70 text-primary px-4 py-3 text-sm font-bold flex items-center justify-center gap-2"
+                  >
+                    Sign in
+                    <span className="material-symbols-outlined text-base">
+                      login
+                    </span>
+                  </Link>
+                )}
               </div>
             </motion.div>
           )}
