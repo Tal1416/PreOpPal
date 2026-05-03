@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import AuthGuard from "@/components/auth/AuthGuard";
 import PageShell from "@/components/layout/PageShell";
 import GlassCard from "@/components/ui/GlassCard";
 import ReadinessRing from "@/components/ui/ReadinessRing";
@@ -19,7 +20,7 @@ import { useProfile } from "@/lib/profile-context";
 import { useViewMode } from "@/lib/view-mode-context";
 import { formatSurgeryDate } from "@/lib/date";
 
-export default function Dashboard() {
+function DashboardInner() {
   const { profile, readinessScore, hydrated } = useProfile();
   const { isEmbed } = useViewMode();
   const [tasks, setTasks] = useState<Task[]>(todayTasks);
@@ -308,5 +309,13 @@ export default function Dashboard() {
         </StaggerGroup>
       </div>
     </PageShell>
+  );
+}
+
+export default function Dashboard() {
+  return (
+    <AuthGuard>
+      <DashboardInner />
+    </AuthGuard>
   );
 }
