@@ -85,9 +85,12 @@ export default function Sidebar() {
             </p>
           </div>
         </div>
-        <button className="w-full bg-primary text-on-primary py-3 rounded-xl font-bold text-sm hover:shadow-glow-teal transition-all">
+        <Link
+          href="/care"
+          className="block w-full text-center bg-primary text-on-primary py-3 rounded-xl font-bold text-sm hover:shadow-glow-teal transition-all"
+        >
           Contact Care Team
-        </button>
+        </Link>
       </div>
     </aside>
   );

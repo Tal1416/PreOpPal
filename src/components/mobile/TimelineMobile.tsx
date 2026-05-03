@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { phases, personalize } from "@/data/content";
+import { phases, personalize, phaseDetails, Phase } from "@/data/content";
 import { useProfile } from "@/lib/profile-context";
+import PhaseDetailModal from "@/components/timeline/PhaseDetailModal";
 
 export default function TimelineMobile() {
   const { profile } = useProfile();
@@ -12,6 +13,7 @@ export default function TimelineMobile() {
     phases.findIndex((p) => p.state === "current")
   );
   const [activeIndex, setActiveIndex] = useState(initialIndex);
+  const [modalPhase, setModalPhase] = useState<Phase | null>(null);
   const active = phases[activeIndex];
 
   return (
@@ -66,8 +68,12 @@ export default function TimelineMobile() {
             const isActive = i === activeIndex;
             return (
               <button
+                type="button"
                 key={p.id}
-                onClick={() => setActiveIndex(i)}
+                onClick={() => {
+                  if (isActive) setModalPhase(p);
+                  else setActiveIndex(i);
+                }}
                 className={`snap-start shrink-0 relative rounded-2xl px-3.5 py-2.5 text-left transition-all ${
                   isActive
                     ? "bg-primary text-white shadow-[0_8px_20px_-8px_rgba(0,97,114,0.55)]"
@@ -157,6 +163,18 @@ export default function TimelineMobile() {
               </li>
             ))}
           </ul>
+          <button
+            type="button"
+            onClick={() => setModalPhase(active)}
+            className="w-full px-5 py-3.5 border-t border-white/40 flex items-center justify-between gap-3 bg-white/30 active:bg-white/60 transition-colors"
+          >
+            <span className="text-[12px] font-bold uppercase tracking-[0.18em] text-primary">
+              View full phase plan
+            </span>
+            <span className="material-symbols-outlined text-primary text-[18px]">
+              arrow_forward
+            </span>
+          </button>
         </motion.section>
       </AnimatePresence>
 
@@ -172,8 +190,12 @@ export default function TimelineMobile() {
               const isActive = i === activeIndex;
               return (
                 <button
+                  type="button"
                   key={p.id}
-                  onClick={() => setActiveIndex(i)}
+                  onClick={() => {
+                    setActiveIndex(i);
+                    setModalPhase(p);
+                  }}
                   className={`w-full text-left flex items-center gap-3 py-2 px-3 rounded-2xl transition-colors ${
                     isActive ? "bg-white/70" : "active:bg-white/40"
                   }`}
@@ -215,6 +237,13 @@ export default function TimelineMobile() {
           </div>
         </div>
       </section>
+
+      <PhaseDetailModal
+        open={!!modalPhase}
+        onClose={() => setModalPhase(null)}
+        phase={modalPhase}
+        details={modalPhase ? phaseDetails[modalPhase.id] : undefined}
+      />
     </div>
   );
 }

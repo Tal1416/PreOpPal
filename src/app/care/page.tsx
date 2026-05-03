@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import PageShell from "@/components/layout/PageShell";
 import GlassCard from "@/components/ui/GlassCard";
@@ -23,24 +25,34 @@ const REPLIES = [
 export default function CareSupport() {
   const { profile } = useProfile();
   const { isEmbed } = useViewMode();
+  const searchParams = useSearchParams();
+  const chatId = searchParams.get("chat");
 
   const team = careTeam.map((m, i) =>
     i === 0 && profile.surgeon?.trim()
       ? { ...m, name: profile.surgeon.trim() }
       : m
   );
-  const personalizedSeed = chatSeed.map((m) =>
-    m.id === "1"
-      ? {
-          ...m,
-          text: `Hi ${profile.firstName?.trim() || "there"} — I'm Nurse Amelia. I'll be your point of contact this week. How are you feeling about your ${profile.procedure?.trim() || "procedure"}?`,
-        }
-      : m
-  );
+  const partner = team.find((m) => m.id === chatId) ?? team[2];
+  const partnerFirstName = partner.name.split(",")[0].split(" ").slice(0, 2).join(" ");
+  const personalizedSeed: ChatMessage[] = [
+    {
+      id: "1",
+      from: "nurse",
+      text: `Hi ${profile.firstName?.trim() || "there"} — I'm ${partnerFirstName}, your ${partner.role.toLowerCase()}. How are you feeling about your ${profile.procedure?.trim() || "procedure"}?`,
+      time: "9:02 AM",
+    },
+    ...chatSeed.slice(1),
+  ];
   const [messages, setMessages] = useState<ChatMessage[]>(personalizedSeed);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMessages(personalizedSeed);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [partner.id]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({
@@ -112,7 +124,7 @@ export default function CareSupport() {
                 <div className="flex items-center gap-3">
                   <div className="relative">
                     <img
-                      src={team[2].avatar}
+                      src={partner.avatar}
                       alt=""
                       className="h-12 w-12 rounded-full object-cover ring-2 ring-white"
                     />
@@ -120,7 +132,7 @@ export default function CareSupport() {
                   </div>
                   <div>
                     <h3 className="text-base font-bold text-on-surface">
-                      {team[2].name}
+                      {partner.name}
                     </h3>
                     <p className="text-xs text-primary font-medium">
                       Online · responds in minutes
@@ -156,7 +168,7 @@ export default function CareSupport() {
                     >
                       {msg.from === "nurse" && (
                         <img
-                          src={team[2].avatar}
+                          src={partner.avatar}
                           alt=""
                           className="h-8 w-8 rounded-full object-cover ring-1 ring-white shrink-0 self-end"
                         />
@@ -190,7 +202,7 @@ export default function CareSupport() {
                       className="flex gap-3 justify-start"
                     >
                       <img
-                        src={team[2].avatar}
+                        src={partner.avatar}
                         alt=""
                         className="h-8 w-8 rounded-full object-cover ring-1 ring-white shrink-0 self-end"
                       />
@@ -273,11 +285,18 @@ export default function CareSupport() {
                           {m.role}
                         </p>
                       </div>
-                      <button className="rounded-full p-2 hover:bg-white/60 transition-colors">
-                        <span className="material-symbols-outlined text-primary">
-                          chat
-                        </span>
-                      </button>
+                      <Link
+                        href={`/care?chat=${m.id}`}
+                        scroll={false}
+                        aria-label={`Chat with ${m.name}`}
+                        className={`rounded-full p-2 transition-colors ${
+                          partner.id === m.id
+                            ? "bg-primary text-white"
+                            : "hover:bg-white/60 text-primary"
+                        }`}
+                      >
+                        <span className="material-symbols-outlined">chat</span>
+                      </Link>
                     </GlassCard>
                   </StaggerItem>
                 ))}

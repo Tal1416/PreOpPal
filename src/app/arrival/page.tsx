@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import PageShell from "@/components/layout/PageShell";
 import GlassCard from "@/components/ui/GlassCard";
 import ScrollReveal from "@/components/ui/ScrollReveal";
@@ -16,6 +16,7 @@ export default function ArrivalGuide() {
   });
   const fill = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
   const { profile } = useProfile();
+  const [notifyTeam, setNotifyTeam] = useState(false);
   const query = encodeURIComponent(
     `${profile.hospitalName}, ${profile.hospitalAddress}`
   );
@@ -157,6 +158,39 @@ export default function ArrivalGuide() {
                     <span className="material-symbols-outlined">map</span>
                     Open in Google Maps
                   </a>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={notifyTeam}
+                    onClick={() => setNotifyTeam((v) => !v)}
+                    className="mt-1 flex items-center justify-between gap-4 rounded-2xl bg-white/70 backdrop-blur-md border border-white/70 px-4 py-3 text-left hover:bg-white transition-all"
+                  >
+                    <span className="flex items-start gap-3 min-w-0">
+                      <span className="material-symbols-outlined text-primary shrink-0">
+                        notifications_active
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block text-sm font-bold text-on-surface leading-tight">
+                          Notify team of your estimated arrival
+                        </span>
+                        <span className="block text-xs text-on-surface-variant mt-0.5">
+                          We&apos;ll share your live ETA with the surgical team.
+                        </span>
+                      </span>
+                    </span>
+                    <span
+                      aria-hidden
+                      className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+                        notifyTeam ? "bg-primary" : "bg-on-surface-variant/30"
+                      }`}
+                    >
+                      <span
+                        className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${
+                          notifyTeam ? "left-[1.375rem]" : "left-0.5"
+                        }`}
+                      />
+                    </span>
+                  </button>
                 </div>
               </div>
             </div>

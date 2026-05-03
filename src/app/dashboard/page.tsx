@@ -295,9 +295,12 @@ export default function Dashboard() {
                   {m.name}
                 </h4>
                 <p className="text-xs text-secondary font-medium">{m.role}</p>
-                <button className="mt-4 w-full py-2 rounded-lg bg-white/70 text-primary text-xs font-bold tracking-widest hover:bg-primary hover:text-white transition-colors">
+                <Link
+                  href={`/care?chat=${m.id}`}
+                  className="mt-4 block w-full py-2 rounded-lg bg-white/70 text-primary text-xs font-bold tracking-widest hover:bg-primary hover:text-white transition-colors"
+                >
                   MESSAGE
-                </button>
+                </Link>
               </GlassCard>
             </StaggerItem>
             );

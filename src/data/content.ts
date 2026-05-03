@@ -65,6 +65,25 @@ export const todayTasks: Task[] = [
   },
 ];
 
+export type PhaseChecklistItem = {
+  id: string;
+  label: string;
+  checked: boolean;
+};
+
+export type PhaseTip = {
+  icon: string;
+  title: string;
+  detail: string;
+};
+
+export type PhaseDetails = {
+  summary?: string;
+  medications?: Medication[];
+  checklist?: PhaseChecklistItem[];
+  tips?: PhaseTip[];
+};
+
 export type Phase = {
   id: string;
   label: string;
@@ -461,3 +480,114 @@ export const features: Feature[] = [
     accent: "from-[#94d0e1] to-[#0a6879]",
   },
 ];
+
+const medsById = Object.fromEntries(medications.map((m) => [m.id, m]));
+
+export const phaseDetails: Record<string, PhaseDetails> = {
+  p1: {
+    summary:
+      "Your foundation phase — clearances, baselines, and labs all submitted to {{surgeon}}.",
+    checklist: [
+      { id: "ekg", label: "EKG submitted to surgeon", checked: true },
+      { id: "blood", label: "Bloodwork results uploaded", checked: true },
+      { id: "history", label: "Complete medical history form", checked: true },
+      { id: "covid", label: "COVID/flu screening up to date", checked: false },
+    ],
+    tips: [
+      {
+        icon: "directions_run",
+        title: "Stay active",
+        detail: "Light cardio improves recovery times.",
+      },
+      {
+        icon: "restaurant",
+        title: "Eat for healing",
+        detail: "Lean protein and leafy greens build tissue resilience.",
+      },
+    ],
+  },
+  p2: {
+    summary:
+      "Window to taper meds and start the antiseptic protocol. Most-impactful phase for safe surgery.",
+    medications: ["m1", "m2"].map((id) => medsById[id]).filter(Boolean),
+    checklist: [
+      { id: "chg-1", label: "CHG shower — Day 1", checked: true },
+      { id: "chg-2", label: "CHG shower — Day 2", checked: false },
+      { id: "chg-3", label: "CHG shower — Day 3", checked: false },
+      { id: "breath", label: "5 min paced breathing (twice daily)", checked: false },
+      { id: "alcohol", label: "No alcohol — start 72h before", checked: false },
+    ],
+    tips: [
+      {
+        icon: "spa",
+        title: "Breath work calms cortisol",
+        detail: "Use the Calm orb on your dashboard — 4-4 pattern works best.",
+      },
+    ],
+  },
+  p3: {
+    summary:
+      "Final prep day. Fasting begins and your hospital bag should be by the door.",
+    checklist: [
+      { id: "fast-clear", label: "Clear liquids only after noon", checked: false },
+      { id: "fast-solid", label: "No solid food after 10:00 PM", checked: false },
+      { id: "bag-id", label: "Pack ID + insurance card", checked: true },
+      { id: "bag-meds", label: "Pack current medication list", checked: false },
+      { id: "bag-comfort", label: "Pack robe, slippers, headphones", checked: false },
+      { id: "ride", label: "Confirm driver pickup time", checked: false },
+      { id: "alarm", label: "Set 5:30 AM alarm", checked: false },
+    ],
+    tips: [
+      {
+        icon: "bedtime",
+        title: "Sleep is your secret weapon",
+        detail: "Aim for 7–8 hrs. Avoid screens after 9 PM.",
+      },
+    ],
+  },
+  p4: {
+    summary:
+      "Surgery day at {{hospital}}. Your care team and {{surgeon}} are ready.",
+    medications: ["m3", "m5"].map((id) => medsById[id]).filter(Boolean),
+    checklist: [
+      { id: "chg-am", label: "CHG shower — morning of surgery", checked: false },
+      { id: "lisinopril", label: "Take Lisinopril with sip of water", checked: false },
+      { id: "no-makeup", label: "No makeup, lotion, or deodorant", checked: false },
+      { id: "id-bring", label: "Bring ID + insurance card", checked: true },
+      { id: "arrive", label: "Arrive by 6:00 AM — Building B, Floor 3", checked: false },
+      { id: "phone", label: "Phone on Do Not Disturb (Family Updates on)", checked: false },
+    ],
+    tips: [
+      {
+        icon: "psychology",
+        title: "If anxiety spikes",
+        detail: "Square breathing — 4 in, 4 hold, 4 out, 4 hold.",
+      },
+    ],
+  },
+  p5: {
+    summary:
+      "30-day recovery arc. Pain control, gentle motion, and check-ins on Days 3, 7, and 14.",
+    medications: ["m6"].map((id) => medsById[id]).filter(Boolean),
+    checklist: [
+      { id: "rx-pickup", label: "Pick up post-op prescriptions", checked: false },
+      { id: "pt-d1", label: "Day 1 — gentle range-of-motion", checked: false },
+      { id: "pt-d3", label: "Day 3 — telehealth check-in", checked: false },
+      { id: "pt-d7", label: "Day 7 — telehealth check-in", checked: false },
+      { id: "pt-d14", label: "Day 14 — telehealth check-in", checked: false },
+      { id: "pt-d30", label: "Day 30 — final follow-up", checked: false },
+    ],
+    tips: [
+      {
+        icon: "water_drop",
+        title: "Hydrate aggressively",
+        detail: "8+ cups water/day speeds tissue healing.",
+      },
+      {
+        icon: "warning",
+        title: "Watch for red flags",
+        detail: "Fever > 101°F, swelling, or new pain — message your care team.",
+      },
+    ],
+  },
+};

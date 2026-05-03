@@ -1,22 +1,24 @@
 "use client";
 
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import PageShell from "@/components/layout/PageShell";
 import GlassCard from "@/components/ui/GlassCard";
 import ScrollReveal, {
   StaggerGroup,
   StaggerItem,
 } from "@/components/ui/ScrollReveal";
-import { phases, personalize } from "@/data/content";
+import { phases, personalize, phaseDetails, Phase } from "@/data/content";
 import { useProfile } from "@/lib/profile-context";
 import { useViewMode } from "@/lib/view-mode-context";
 import TimelineMobile from "@/components/mobile/TimelineMobile";
+import PhaseDetailModal from "@/components/timeline/PhaseDetailModal";
 
 export default function Timeline() {
   const { profile } = useProfile();
   const { isEmbed } = useViewMode();
   const containerRef = useRef<HTMLDivElement>(null);
+  const [activePhase, setActivePhase] = useState<Phase | null>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start center", "end center"],
@@ -57,7 +59,10 @@ export default function Timeline() {
           {phases.map((p) => (
             <StaggerItem key={p.id}>
               <button
-                className={`relative w-full text-left p-5 rounded-2xl transition-all overflow-hidden ${
+                type="button"
+                onClick={() => setActivePhase(p)}
+                aria-label={`Open ${p.title} details`}
+                className={`relative w-full text-left p-5 rounded-2xl transition-all overflow-hidden hover:-translate-y-0.5 hover:shadow-glass-lg ${
                   p.state === "current"
                     ? "bg-white shadow-glass-lg ring-2 ring-primary"
                     : p.state === "complete"
@@ -134,53 +139,78 @@ export default function Timeline() {
                   {i + 1}
                 </motion.div>
 
-                <GlassCard className="p-6 md:p-8" tilt={false}>
-                  <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">
-                        {p.label} · {p.range}
-                      </p>
-                      <h3 className="mt-1 text-2xl font-bold text-on-surface">
-                        {p.title}
-                      </h3>
-                    </div>
-                    {p.state === "current" && (
-                      <span className="rounded-full bg-primary text-white px-3 py-1 text-[10px] font-bold tracking-widest">
-                        IN PROGRESS
-                      </span>
-                    )}
-                    {p.state === "complete" && (
-                      <span className="rounded-full bg-primary-fixed/40 text-primary px-3 py-1 text-[10px] font-bold tracking-widest">
-                        COMPLETE
-                      </span>
-                    )}
-                  </div>
-                  <ul className="space-y-3">
-                    {p.highlights.map((h) => (
-                      <li
-                        key={h.title}
-                        className="flex items-start gap-4 p-3 rounded-xl hover:bg-white/40 transition-colors"
-                      >
-                        <span className="material-symbols-outlined text-primary mt-0.5">
-                          {h.icon}
+                <button
+                  type="button"
+                  onClick={() => setActivePhase(p)}
+                  aria-label={`Open ${p.title} details`}
+                  className="block w-full text-left rounded-3xl transition-transform hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
+                  <GlassCard className="p-6 md:p-8" tilt={false}>
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">
+                          {p.label} · {p.range}
+                        </p>
+                        <h3 className="mt-1 text-2xl font-bold text-on-surface">
+                          {p.title}
+                        </h3>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {p.state === "current" && (
+                          <span className="rounded-full bg-primary text-white px-3 py-1 text-[10px] font-bold tracking-widest">
+                            IN PROGRESS
+                          </span>
+                        )}
+                        {p.state === "complete" && (
+                          <span className="rounded-full bg-primary-fixed/40 text-primary px-3 py-1 text-[10px] font-bold tracking-widest">
+                            COMPLETE
+                          </span>
+                        )}
+                        <span className="material-symbols-outlined text-on-surface-variant text-[20px]">
+                          open_in_new
                         </span>
-                        <div>
-                          <p className="text-sm font-bold text-on-surface">
-                            {personalize(h.title, profile)}
-                          </p>
-                          <p className="text-sm text-on-surface-variant">
-                            {personalize(h.detail, profile)}
-                          </p>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </GlassCard>
+                      </div>
+                    </div>
+                    <ul className="space-y-3">
+                      {p.highlights.map((h) => (
+                        <li
+                          key={h.title}
+                          className="flex items-start gap-4 p-3 rounded-xl hover:bg-white/40 transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-primary mt-0.5">
+                            {h.icon}
+                          </span>
+                          <div>
+                            <p className="text-sm font-bold text-on-surface">
+                              {personalize(h.title, profile)}
+                            </p>
+                            <p className="text-sm text-on-surface-variant">
+                              {personalize(h.detail, profile)}
+                            </p>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="mt-4 text-xs font-bold uppercase tracking-[0.2em] text-primary flex items-center gap-1">
+                      View full phase plan
+                      <span className="material-symbols-outlined text-[14px]">
+                        arrow_forward
+                      </span>
+                    </p>
+                  </GlassCard>
+                </button>
               </motion.div>
             ))}
           </div>
         </div>
       </div>
+
+      <PhaseDetailModal
+        open={!!activePhase}
+        onClose={() => setActivePhase(null)}
+        phase={activePhase}
+        details={activePhase ? phaseDetails[activePhase.id] : undefined}
+      />
     </PageShell>
   );
 }
