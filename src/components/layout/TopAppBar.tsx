@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useProfile } from "@/lib/profile-context";
 import { useViewMode } from "@/lib/view-mode-context";
+import AvatarPicker from "@/components/ui/AvatarPicker";
 import NotificationsPanel from "./NotificationsPanel";
 import ViewModeToggle from "./ViewModeToggle";
 
@@ -21,12 +22,14 @@ const TITLES: Record<string, string> = {
 export default function TopAppBar() {
   const pathname = usePathname();
   const title = TITLES[pathname];
-  const { profile } = useProfile();
+  const { profile, updateProfile } = useProfile();
   const { isEmbed } = useViewMode();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
   const mobileTitle = title ?? "PreOpPal";
 
   return (
+    <>
     <header
       className={`fixed top-0 left-0 lg:left-64 right-0 z-30 flex items-center justify-between px-4 lg:px-8 bg-white/80 backdrop-blur-xl border-b border-white/40 shadow-[0_8px_32px_0_rgba(42,122,140,0.04)] ${
         isEmbed
@@ -113,15 +116,34 @@ export default function TopAppBar() {
               T-{profile.daysToSurgery} days
             </p>
           </div>
-          <img
-            src={profile.avatar}
-            alt=""
-            className="h-9 w-9 rounded-full object-cover ring-2 ring-white"
-          />
+          <button
+            type="button"
+            onClick={() => setAvatarPickerOpen(true)}
+            aria-label="Change avatar"
+            className="group relative h-9 w-9 rounded-full overflow-hidden ring-2 ring-white active:scale-95 transition-transform"
+          >
+            <img
+              src={profile.avatar}
+              alt=""
+              className="h-full w-full object-cover"
+            />
+            <span className="absolute inset-0 bg-on-surface/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <span className="material-symbols-outlined text-white text-[14px]">
+                photo_camera
+              </span>
+            </span>
+          </button>
         </div>
       </div>
         </>
       )}
     </header>
+    <AvatarPicker
+      open={avatarPickerOpen}
+      current={profile.avatar}
+      onClose={() => setAvatarPickerOpen(false)}
+      onSelect={(url) => updateProfile({ avatar: url })}
+    />
+    </>
   );
 }

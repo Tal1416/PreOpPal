@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import AnimatedNumber from "@/components/ui/AnimatedNumber";
+import AvatarPicker from "@/components/ui/AvatarPicker";
 import { useProfile } from "@/lib/profile-context";
 import { todayTasks } from "@/data/content";
 
@@ -14,7 +16,8 @@ const QUICK_LINKS = [
 ];
 
 export default function LandingMobile() {
-  const { profile, readinessScore, hydrated } = useProfile();
+  const { profile, updateProfile, readinessScore, hydrated } = useProfile();
+  const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
   const name = profile.firstName?.trim() || "friend";
   const daysLeft = Math.max(0, profile.daysToSurgery);
   const ready = hydrated ? readinessScore : profile.readinessScore;
@@ -62,13 +65,23 @@ export default function LandingMobile() {
                 PreOpPal
               </span>
             </div>
-            <div className="h-9 w-9 overflow-hidden rounded-full ring-2 ring-white/40">
+            <button
+              type="button"
+              onClick={() => setAvatarPickerOpen(true)}
+              aria-label="Change avatar"
+              className="group relative h-9 w-9 overflow-hidden rounded-full ring-2 ring-white/40 active:scale-95 transition-transform"
+            >
               <img
                 src={profile.avatar}
                 alt={profile.firstName}
                 className="h-full w-full object-cover"
               />
-            </div>
+              <span className="absolute inset-0 bg-on-surface/40 opacity-0 group-active:opacity-100 transition-opacity flex items-center justify-center">
+                <span className="material-symbols-outlined text-white text-[14px]">
+                  photo_camera
+                </span>
+              </span>
+            </button>
           </div>
           <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-white/70 mb-2">
             Welcome back
@@ -222,6 +235,12 @@ export default function LandingMobile() {
         </div>
       </motion.section>
 
+      <AvatarPicker
+        open={avatarPickerOpen}
+        current={profile.avatar}
+        onClose={() => setAvatarPickerOpen(false)}
+        onSelect={(url) => updateProfile({ avatar: url })}
+      />
     </div>
   );
 }
