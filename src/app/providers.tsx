@@ -6,7 +6,10 @@ import { motion, useScroll, useSpring } from "framer-motion";
 import Lenis from "@studio-freight/lenis";
 
 import GradientMesh from "@/components/ui/GradientMesh";
+import PhoneFrame from "@/components/layout/PhoneFrame";
+import ViewModeToggle from "@/components/layout/ViewModeToggle";
 import { ProfileProvider } from "@/lib/profile-context";
+import { ViewModeProvider, useViewMode } from "@/lib/view-mode-context";
 
 function ScrollProgress() {
   const { scrollYProgress } = useScroll();
@@ -20,6 +23,19 @@ function ScrollProgress() {
       style={{ scaleX, transformOrigin: "0 0" }}
       className="fixed top-0 left-0 right-0 z-[100] h-[3px] bg-gradient-to-r from-[#88d1e5] via-[#2a7a8c] to-[#006172] pointer-events-none"
     />
+  );
+}
+
+function ViewModeShell({ children }: { children: React.ReactNode }) {
+  const { mode, isEmbed, hydrated } = useViewMode();
+  const showPhone = hydrated && !isEmbed && mode === "phone";
+
+  return (
+    <>
+      <ViewModeToggle />
+      <div style={{ display: showPhone ? "none" : "contents" }}>{children}</div>
+      {showPhone && <PhoneFrame />}
+    </>
   );
 }
 
@@ -50,9 +66,11 @@ export default function Providers({
 
   return (
     <ProfileProvider>
-      <GradientMesh />
-      <ScrollProgress />
-      {children}
+      <ViewModeProvider>
+        <GradientMesh />
+        <ScrollProgress />
+        <ViewModeShell>{children}</ViewModeShell>
+      </ViewModeProvider>
     </ProfileProvider>
   );
 }
