@@ -2,8 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import { useProfile } from "@/lib/profile-context";
 import { useViewMode } from "@/lib/view-mode-context";
+import NotificationsPanel from "./NotificationsPanel";
+import ViewModeToggle from "./ViewModeToggle";
 
 const TITLES: Record<string, string> = {
   "/dashboard": "Dashboard",
@@ -20,6 +23,7 @@ export default function TopAppBar() {
   const title = TITLES[pathname];
   const { profile } = useProfile();
   const { isEmbed } = useViewMode();
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const mobileTitle = title ?? "PreOpPal";
 
   return (
@@ -30,6 +34,10 @@ export default function TopAppBar() {
           : "h-16"
       }`}
     >
+      <NotificationsPanel
+        open={notificationsOpen}
+        onClose={() => setNotificationsOpen(false)}
+      />
       {isEmbed ? (
         <div className="flex w-full items-center justify-between lg:hidden">
           <Link href="/" className="flex items-center gap-2">
@@ -46,6 +54,8 @@ export default function TopAppBar() {
           </span>
           <button
             aria-label="Notifications"
+            aria-expanded={notificationsOpen}
+            onClick={() => setNotificationsOpen((v) => !v)}
             className="relative p-2 rounded-full hover:bg-white/40 transition-colors active:scale-95"
           >
             <span className="material-symbols-outlined text-primary text-[22px]">
@@ -82,7 +92,13 @@ export default function TopAppBar() {
       </div>
 
       <div className="flex items-center gap-3">
-        <button className="relative p-2 rounded-full hover:bg-white/40 transition-colors active:scale-95">
+        <ViewModeToggle inline />
+        <button
+          aria-label="Notifications"
+          aria-expanded={notificationsOpen}
+          onClick={() => setNotificationsOpen((v) => !v)}
+          className="relative p-2 rounded-full hover:bg-white/40 transition-colors active:scale-95"
+        >
           <span className="material-symbols-outlined text-primary">
             notifications
           </span>

@@ -13,14 +13,25 @@ import ScrollReveal, {
   StaggerItem,
 } from "@/components/ui/ScrollReveal";
 import AICompanionCard from "@/components/ai/AICompanionCard";
+import DashboardMobile from "@/components/mobile/DashboardMobile";
 import { todayTasks, careTeam, personalize, Task } from "@/data/content";
 import { useProfile } from "@/lib/profile-context";
+import { useViewMode } from "@/lib/view-mode-context";
 import { formatSurgeryDate } from "@/lib/date";
 
 export default function Dashboard() {
   const { profile, readinessScore, hydrated } = useProfile();
+  const { isEmbed } = useViewMode();
   const [tasks, setTasks] = useState<Task[]>(todayTasks);
   const remaining = tasks.filter((t) => t.status !== "done").length;
+
+  if (isEmbed) {
+    return (
+      <PageShell>
+        <DashboardMobile />
+      </PageShell>
+    );
+  }
 
   function toggle(id: string) {
     setTasks((cur) =>

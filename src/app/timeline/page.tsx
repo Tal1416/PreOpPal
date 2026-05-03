@@ -10,15 +10,26 @@ import ScrollReveal, {
 } from "@/components/ui/ScrollReveal";
 import { phases, personalize } from "@/data/content";
 import { useProfile } from "@/lib/profile-context";
+import { useViewMode } from "@/lib/view-mode-context";
+import TimelineMobile from "@/components/mobile/TimelineMobile";
 
 export default function Timeline() {
   const { profile } = useProfile();
+  const { isEmbed } = useViewMode();
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start center", "end center"],
   });
   const lineHeight = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
+
+  if (isEmbed) {
+    return (
+      <PageShell>
+        <TimelineMobile />
+      </PageShell>
+    );
+  }
 
   return (
     <PageShell>

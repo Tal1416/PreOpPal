@@ -7,6 +7,8 @@ import GlassCard from "@/components/ui/GlassCard";
 import Modal from "@/components/ui/Modal";
 import ScrollReveal from "@/components/ui/ScrollReveal";
 import { useProfile } from "@/lib/profile-context";
+import { useViewMode } from "@/lib/view-mode-context";
+import MeMobile from "@/components/mobile/MeMobile";
 import type { Medication } from "@/data/content";
 
 const inputCls =
@@ -69,9 +71,18 @@ const emptyMedication: Omit<Medication, "id"> = {
 
 export default function MePage() {
   const { profile, updateProfile, resetProfile, readinessScore } = useProfile();
+  const { isEmbed } = useViewMode();
   const [saved, setSaved] = useState(false);
   const [medModalOpen, setMedModalOpen] = useState(false);
   const [draftMed, setDraftMed] = useState<Omit<Medication, "id">>(emptyMedication);
+
+  if (isEmbed) {
+    return (
+      <PageShell>
+        <MeMobile />
+      </PageShell>
+    );
+  }
 
   function openMedicationModal() {
     setDraftMed(emptyMedication);

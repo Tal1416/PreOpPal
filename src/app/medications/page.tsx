@@ -10,6 +10,8 @@ import ScrollReveal, {
 } from "@/components/ui/ScrollReveal";
 import { medications as defaultMedications, personalize } from "@/data/content";
 import { useProfile } from "@/lib/profile-context";
+import { useViewMode } from "@/lib/view-mode-context";
+import MedicationsMobile from "@/components/mobile/MedicationsMobile";
 
 const STATUS_THEME = {
   stop: {
@@ -32,6 +34,16 @@ const STATUS_THEME = {
 
 export default function Medications() {
   const { profile } = useProfile();
+  const { isEmbed } = useViewMode();
+
+  if (isEmbed) {
+    return (
+      <PageShell>
+        <MedicationsMobile />
+      </PageShell>
+    );
+  }
+
   const meds =
     profile.medications && profile.medications.length > 0
       ? profile.medications

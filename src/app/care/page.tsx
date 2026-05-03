@@ -10,6 +10,8 @@ import ScrollReveal, {
 } from "@/components/ui/ScrollReveal";
 import { careTeam, chatSeed, ChatMessage } from "@/data/content";
 import { useProfile } from "@/lib/profile-context";
+import { useViewMode } from "@/lib/view-mode-context";
+import CareMobile from "@/components/mobile/CareMobile";
 
 const REPLIES = [
   "Of course — let's walk through that together.",
@@ -20,6 +22,8 @@ const REPLIES = [
 
 export default function CareSupport() {
   const { profile } = useProfile();
+  const { isEmbed } = useViewMode();
+
   const team = careTeam.map((m, i) =>
     i === 0 && profile.surgeon?.trim()
       ? { ...m, name: profile.surgeon.trim() }
@@ -44,6 +48,14 @@ export default function CareSupport() {
       behavior: "smooth",
     });
   }, [messages, typing]);
+
+  if (isEmbed) {
+    return (
+      <PageShell>
+        <CareMobile />
+      </PageShell>
+    );
+  }
 
   function send() {
     if (!input.trim()) return;

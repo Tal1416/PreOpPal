@@ -15,10 +15,9 @@ export default function FAB() {
 
   useEffect(() => {
     if (!ai.open) return;
-    scrollRef.current?.scrollTo({
-      top: scrollRef.current.scrollHeight,
-      behavior: "smooth",
-    });
+    const node = scrollRef.current;
+    if (!node) return;
+    node.scrollTop = node.scrollHeight;
   }, [ai.messages, ai.typing, ai.open]);
 
   function send() {
@@ -148,7 +147,8 @@ export default function FAB() {
             {/* messages */}
             <div
               ref={scrollRef}
-              className="flex-1 overflow-y-auto px-5 py-4 space-y-3 bg-white/40"
+              data-lenis-prevent
+              className="flex-1 overflow-y-auto overscroll-contain px-5 py-4 space-y-3 bg-white/40"
             >
               <AnimatePresence initial={false}>
                 {ai.messages.map((msg) => (
