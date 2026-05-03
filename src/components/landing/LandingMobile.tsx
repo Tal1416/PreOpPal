@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import { useProfile } from "@/lib/profile-context";
+import { todayTasks } from "@/data/content";
 
 const QUICK_LINKS = [
   { to: "/dashboard", icon: "dashboard", label: "Dashboard" },
@@ -12,15 +13,18 @@ const QUICK_LINKS = [
   { to: "/bag", icon: "work", label: "Bag" },
 ];
 
-const STATS = [
-  { v: 7, suffix: "", label: "Days Left", icon: "calendar_today", accent: "text-primary" },
-  { v: 85, suffix: "%", label: "Ready", icon: "check_circle", accent: "text-emerald-500" },
-  { v: 12, suffix: "", label: "Tasks", icon: "assignment", accent: "text-orange-400" },
-];
-
 export default function LandingMobile() {
-  const { profile } = useProfile();
+  const { profile, readinessScore, hydrated } = useProfile();
   const name = profile.firstName?.trim() || "friend";
+  const daysLeft = Math.max(0, profile.daysToSurgery);
+  const ready = hydrated ? readinessScore : profile.readinessScore;
+  const tasksRemaining = todayTasks.filter((t) => t.status !== "done").length;
+
+  const stats = [
+    { v: daysLeft, suffix: "", label: "Days Left", icon: "calendar_today", accent: "text-primary" },
+    { v: ready, suffix: "%", label: "Ready", icon: "check_circle", accent: "text-emerald-500" },
+    { v: tasksRemaining, suffix: "", label: "Tasks", icon: "assignment", accent: "text-orange-400" },
+  ];
 
   return (
     <div className="relative pb-28">
@@ -95,7 +99,7 @@ export default function LandingMobile() {
         transition={{ duration: 0.5, delay: 0.1 }}
         className="mt-5 px-4 grid grid-cols-3 gap-2.5"
       >
-        {STATS.map((s) => (
+        {stats.map((s) => (
           <div
             key={s.label}
             className="glass-card rounded-2xl p-3 flex flex-col items-center text-center"
