@@ -37,7 +37,7 @@ export default function Dashboard() {
 
   return (
     <PageShell>
-      <div className="max-w-7xl mx-auto space-y-10">
+      <div className="max-w-7xl mx-auto space-y-6 md:space-y-10">
         {/* greeting */}
         <ScrollReveal>
           <div className="flex flex-wrap items-end justify-between gap-4 pt-2">
@@ -45,10 +45,10 @@ export default function Dashboard() {
               <p className="text-xs font-bold uppercase tracking-[0.3em] text-primary mb-2">
                 The Big Day
               </p>
-              <h1 className="text-balance text-4xl md:text-6xl font-extrabold tracking-tight text-on-surface">
+              <h1 className="text-balance text-3xl md:text-6xl font-extrabold tracking-tight text-on-surface">
                 Good morning, {greetingName}.
               </h1>
-              <p className="mt-3 text-on-surface-variant text-lg max-w-xl">
+              <p className="mt-3 text-on-surface-variant text-base md:text-lg max-w-xl">
                 You're doing great. Everything is on track for{" "}
                 {surgeryDateLabel}.
               </p>
@@ -65,9 +65,9 @@ export default function Dashboard() {
         </ScrollReveal>
 
         {/* HERO ROW */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
           <ScrollReveal className="lg:col-span-8" delay={0.05}>
-            <GlassCard className="relative overflow-hidden p-8 md:p-12 min-h-[360px] flex flex-col justify-between">
+            <GlassCard className="relative overflow-hidden p-6 md:p-12 min-h-[240px] md:min-h-[360px] flex flex-col justify-between">
               <motion.div
                 aria-hidden
                 className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-gradient-to-br from-[#88d1e5] to-[#006172] opacity-20 blur-2xl"
@@ -109,7 +109,7 @@ export default function Dashboard() {
           </ScrollReveal>
 
           <ScrollReveal className="lg:col-span-4" delay={0.15}>
-            <GlassCard className="p-8 flex flex-col items-center justify-center text-center min-h-[360px]">
+            <GlassCard className="p-6 md:p-8 flex flex-col items-center justify-center text-center min-h-[260px] md:min-h-[360px]">
               <h3 className="text-headline-sm font-semibold text-primary mb-4">
                 Readiness Score
               </h3>

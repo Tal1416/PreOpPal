@@ -4,10 +4,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { useAI, SUGGESTIONS } from "@/components/ai/ai-store";
 import { useProfile } from "@/lib/profile-context";
+import { useViewMode } from "@/lib/view-mode-context";
 
 export default function FAB() {
   const ai = useAI();
   const { profile } = useProfile();
+  const { isEmbed } = useViewMode();
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -59,12 +61,17 @@ export default function FAB() {
         whileTap={{ scale: 0.92 }}
         whileHover={{ scale: 1.06 }}
         animate={{ rotate: ai.open ? 45 : 0 }}
-        className="fixed bottom-24 right-6 lg:bottom-8 lg:right-8 z-50 flex h-20 w-20 lg:h-24 lg:w-24 items-center justify-center rounded-full text-on-primary"
+        className={`fixed z-50 flex items-center justify-center rounded-full text-on-primary ${
+          isEmbed
+            ? "bottom-[88px] right-4 h-12 w-12"
+            : "bottom-24 right-6 lg:bottom-8 lg:right-8 h-20 w-20 lg:h-24 lg:w-24"
+        }`}
         style={{
           background:
             "linear-gradient(135deg, #acedff 0%, #88d1e5 35%, #2a7a8c 70%, #006172 100%)",
-          boxShadow:
-            "0 30px 60px -10px rgba(0,97,114,0.55), 0 0 0 6px rgba(255,255,255,0.4) inset",
+          boxShadow: isEmbed
+            ? "0 12px 24px -6px rgba(0,97,114,0.45), 0 0 0 3px rgba(255,255,255,0.35) inset"
+            : "0 30px 60px -10px rgba(0,97,114,0.55), 0 0 0 6px rgba(255,255,255,0.4) inset",
         }}
         aria-label={ai.open ? "Close AI companion" : "Open AI companion"}
       >
@@ -81,11 +88,19 @@ export default function FAB() {
           animate={{ scale: [1, 1.6, 1], opacity: [0.5, 0, 0.5] }}
           transition={{ duration: 3.2, repeat: Infinity, delay: 0.4 }}
         />
-        <span className="material-symbols-outlined text-white text-4xl lg:text-5xl drop-shadow-md">
+        <span
+          className={`material-symbols-outlined text-white drop-shadow-md ${
+            isEmbed ? "text-[22px]" : "text-4xl lg:text-5xl"
+          }`}
+        >
           {ai.open ? "close" : "smart_toy"}
         </span>
         {!ai.open && (
-          <span className="absolute top-1 right-1 h-3.5 w-3.5 rounded-full bg-green-400 ring-2 ring-white animate-pulse-teal" />
+          <span
+            className={`absolute rounded-full bg-green-400 ring-2 ring-white animate-pulse-teal ${
+              isEmbed ? "top-0.5 right-0.5 h-2.5 w-2.5" : "top-1 right-1 h-3.5 w-3.5"
+            }`}
+          />
         )}
       </motion.button>
 
