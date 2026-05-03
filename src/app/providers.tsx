@@ -33,8 +33,7 @@ function ViewModeShell({ children }: { children: React.ReactNode }) {
   return (
     <>
       <ViewModeToggle />
-      <div style={{ display: showPhone ? "none" : "contents" }}>{children}</div>
-      {showPhone && <PhoneFrame />}
+      {showPhone ? <PhoneFrame /> : children}
     </>
   );
 }

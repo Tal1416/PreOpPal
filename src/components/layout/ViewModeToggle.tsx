@@ -9,14 +9,14 @@ export default function ViewModeToggle() {
   if (!hydrated || isEmbed) return null;
 
   const options: { value: "web" | "phone"; label: string; icon: string }[] = [
-    { value: "web", label: "Web", icon: "desktop_windows" },
-    { value: "phone", label: "Phone", icon: "smartphone" },
+    { value: "web", label: "Web view", icon: "desktop_windows" },
+    { value: "phone", label: "Phone view", icon: "smartphone" },
   ];
 
   return (
-    <div className="fixed top-3 left-1/2 -translate-x-1/2 z-[110] pointer-events-auto">
+    <div className="fixed top-[15px] right-[68px] z-[110] pointer-events-auto">
       <div
-        className="relative flex items-center gap-1 rounded-full bg-white/80 backdrop-blur-xl border border-white/60 p-1 shadow-[0_10px_40px_-10px_rgba(42,122,140,0.25)]"
+        className="relative flex items-center gap-0.5 rounded-full bg-white/75 backdrop-blur-xl border border-white/60 p-0.5 shadow-[0_6px_24px_-8px_rgba(42,122,140,0.22)]"
         role="tablist"
         aria-label="View mode"
       >
@@ -27,8 +27,10 @@ export default function ViewModeToggle() {
               key={opt.value}
               role="tab"
               aria-selected={isActive}
+              aria-label={opt.label}
+              title={opt.label}
               onClick={() => setMode(opt.value)}
-              className={`relative z-10 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-colors ${
+              className={`relative z-10 flex items-center justify-center h-7 w-7 rounded-full transition-colors ${
                 isActive ? "text-white" : "text-on-surface-variant hover:text-primary"
               }`}
             >
@@ -40,12 +42,11 @@ export default function ViewModeToggle() {
                 />
               )}
               <span
-                className="material-symbols-outlined text-base"
+                className="material-symbols-outlined text-[16px] leading-none"
                 style={{ fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}
               >
                 {opt.icon}
               </span>
-              {opt.label}
             </button>
           );
         })}

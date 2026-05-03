@@ -46,12 +46,12 @@ export default function PhoneFrame() {
       ref={containerRef}
       className="fixed inset-0 z-30 flex items-center justify-center overflow-hidden"
     >
+      <div style={{ transform: `scale(${scale})`, transformOrigin: "center center" }}>
       <motion.div
         initial={{ opacity: 0, scale: 0.92, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         className="relative"
-        style={{ transform: `scale(${scale})`, transformOrigin: "center center" }}
       >
         {/* Phone body / bezel */}
         <div
@@ -101,6 +101,7 @@ export default function PhoneFrame() {
           </div>
         </div>
       </motion.div>
+      </div>
     </div>
   );
 }

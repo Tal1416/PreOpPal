@@ -160,16 +160,17 @@ export default function Landing() {
             transition={{ duration: 1, delay: 1.2 }}
             className="mt-16 flex justify-center"
           >
-            <motion.span
+            <motion.a
+              href="#meet-pal"
               animate={{ y: [0, 6, 0] }}
               transition={{ duration: 2, repeat: Infinity }}
-              className="text-on-surface-variant/60 text-xs uppercase tracking-[0.3em] flex flex-col items-center gap-1"
+              className="text-on-surface-variant/60 hover:text-primary text-xs uppercase tracking-[0.3em] flex flex-col items-center gap-1 transition-colors"
             >
-              Scroll
+              ask pal
               <span className="material-symbols-outlined text-base">
                 arrow_downward
               </span>
-            </motion.span>
+            </motion.a>
           </motion.div>
         </motion.div>
       </section>
@@ -301,7 +302,7 @@ export default function Landing() {
       </section>
 
       {/* MEET PAL — AI COMPANION */}
-      <section className="relative px-6 py-32">
+      <section id="meet-pal" className="relative px-6 py-32 scroll-mt-24">
         <div className="max-w-6xl mx-auto">
           <ScrollReveal className="text-center mb-12">
             <p className="text-xs font-bold uppercase tracking-[0.3em] text-primary mb-4">
