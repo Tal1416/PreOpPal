@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -22,7 +22,15 @@ const REPLIES = [
   "That's normal. Try the breathing orb on your dashboard for two minutes.",
 ];
 
-export default function CareSupport() {
+export default function CareSupportPage() {
+  return (
+    <Suspense fallback={null}>
+      <CareSupport />
+    </Suspense>
+  );
+}
+
+function CareSupport() {
   const { profile } = useProfile();
   const { isEmbed } = useViewMode();
   const searchParams = useSearchParams();
