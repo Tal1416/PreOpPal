@@ -75,7 +75,6 @@ export default function AvatarPicker({
 
   function save() {
     if (!draft) return;
-    console.log('[AvatarPicker] save clicked', { draft, current });
     onSelect(draft);
     onClose();
   }
@@ -90,7 +89,7 @@ export default function AvatarPicker({
       footer={
         <>
           <button
-            onClick={() => { console.log('[AvatarPicker] cancel clicked'); onClose(); }}
+            onClick={onClose}
             className="text-sm font-bold uppercase tracking-widest text-on-surface-variant px-3 py-2"
           >
             Cancel
