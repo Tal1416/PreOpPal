@@ -15,9 +15,12 @@ import ScrollReveal, {
 } from "@/components/ui/ScrollReveal";
 import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import AICompanionCard from "@/components/ai/AICompanionCard";
+import LandingMobile from "@/components/landing/LandingMobile";
 import { features } from "@/data/content";
+import { useViewMode } from "@/lib/view-mode-context";
 
 export default function Landing() {
+  const { isEmbed } = useViewMode();
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -26,6 +29,14 @@ export default function Landing() {
   const heroY = useTransform(scrollYProgress, [0, 1], [0, 200]);
   const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
   const heroScale = useTransform(scrollYProgress, [0, 1], [1, 0.92]);
+
+  if (isEmbed) {
+    return (
+      <PageShell bare>
+        <LandingMobile />
+      </PageShell>
+    );
+  }
 
   return (
     <PageShell bare>
