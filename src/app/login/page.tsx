@@ -7,7 +7,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import PageShell from "@/components/layout/PageShell";
 import GlassCard from "@/components/ui/GlassCard";
 import MagneticButton from "@/components/ui/MagneticButton";
+import LoginMobile from "@/components/mobile/LoginMobile";
 import { DEMO_EMAIL, useAuth } from "@/lib/auth-context";
+import { useViewMode } from "@/lib/view-mode-context";
 
 type Mode = "login" | "signup";
 
@@ -16,6 +18,7 @@ function LoginInner() {
   const params = useSearchParams();
   const next = params.get("next") || "/me";
   const { signIn, isAuthenticated, hydrated } = useAuth();
+  const { isEmbed } = useViewMode();
 
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
@@ -60,6 +63,14 @@ function LoginInner() {
     setEmail(DEMO_EMAIL);
     setPassword("1234");
     setError(null);
+  }
+
+  if (isEmbed) {
+    return (
+      <PageShell bare>
+        <LoginMobile />
+      </PageShell>
+    );
   }
 
   return (

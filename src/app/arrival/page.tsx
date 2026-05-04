@@ -5,10 +5,13 @@ import { useRef, useState } from "react";
 import PageShell from "@/components/layout/PageShell";
 import GlassCard from "@/components/ui/GlassCard";
 import ScrollReveal from "@/components/ui/ScrollReveal";
+import ArrivalMobile from "@/components/mobile/ArrivalMobile";
 import { arrivalSteps, personalize } from "@/data/content";
 import { useProfile } from "@/lib/profile-context";
+import { useViewMode } from "@/lib/view-mode-context";
 
 export default function ArrivalGuide() {
+  const { isEmbed } = useViewMode();
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -23,6 +26,14 @@ export default function ArrivalGuide() {
   const embedSrc = `https://maps.google.com/maps?q=${query}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
   const openMapsHref = `https://www.google.com/maps/search/?api=1&query=${query}`;
   const directionsHref = `https://www.google.com/maps/dir/?api=1&destination=${query}`;
+
+  if (isEmbed) {
+    return (
+      <PageShell>
+        <ArrivalMobile />
+      </PageShell>
+    );
+  }
 
   return (
     <PageShell>

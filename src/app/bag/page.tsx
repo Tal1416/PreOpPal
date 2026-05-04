@@ -8,13 +8,15 @@ import ScrollReveal, {
   StaggerGroup,
   StaggerItem,
 } from "@/components/ui/ScrollReveal";
+import BagMobile from "@/components/mobile/BagMobile";
 import { bagCategories } from "@/data/content";
+import { useViewMode } from "@/lib/view-mode-context";
 
 type CategoryState = (typeof bagCategories)[number];
 
 export default function HospitalBag() {
+  const { isEmbed } = useViewMode();
   const [cats, setCats] = useState<CategoryState[]>(bagCategories);
-
   const totals = useMemo(() => {
     const all = cats.flatMap((c) => c.items);
     return {
@@ -22,6 +24,14 @@ export default function HospitalBag() {
       total: all.length,
     };
   }, [cats]);
+
+  if (isEmbed) {
+    return (
+      <PageShell>
+        <BagMobile />
+      </PageShell>
+    );
+  }
 
   function toggle(catId: string, itemId: string) {
     setCats((cur) =>
