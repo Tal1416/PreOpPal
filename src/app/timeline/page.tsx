@@ -8,7 +8,8 @@ import ScrollReveal, {
   StaggerGroup,
   StaggerItem,
 } from "@/components/ui/ScrollReveal";
-import { phases, personalize, phaseDetails, Phase } from "@/data/content";
+import { personalize, Phase } from "@/data/content";
+import { phasesFor, phaseDetailsFor } from "@/data/procedure-customizations";
 import { useProfile } from "@/lib/profile-context";
 import { useViewMode } from "@/lib/view-mode-context";
 import TimelineMobile from "@/components/mobile/TimelineMobile";
@@ -19,6 +20,7 @@ export default function Timeline() {
   const { isEmbed } = useViewMode();
   const containerRef = useRef<HTMLDivElement>(null);
   const [activePhase, setActivePhase] = useState<Phase | null>(null);
+  const phases = phasesFor(profile.procedureId);
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start center", "end center"],
@@ -209,7 +211,11 @@ export default function Timeline() {
         open={!!activePhase}
         onClose={() => setActivePhase(null)}
         phase={activePhase}
-        details={activePhase ? phaseDetails[activePhase.id] : undefined}
+        details={
+          activePhase
+            ? phaseDetailsFor(profile.procedureId, activePhase.id)
+            : undefined
+        }
       />
     </PageShell>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import AuthGuard from "@/components/auth/AuthGuard";
@@ -16,7 +16,8 @@ import ScrollReveal, {
 import AICompanionCard from "@/components/ai/AICompanionCard";
 import DashboardMobile from "@/components/mobile/DashboardMobile";
 import OnboardingFlow from "@/components/onboarding/OnboardingFlow";
-import { todayTasks, careTeam, personalize, Task } from "@/data/content";
+import { careTeam, personalize, Task } from "@/data/content";
+import { tasksFor } from "@/data/procedure-customizations";
 import { useProfile } from "@/lib/profile-context";
 import { useViewMode } from "@/lib/view-mode-context";
 import { formatSurgeryDate } from "@/lib/date";
@@ -24,7 +25,12 @@ import { formatSurgeryDate } from "@/lib/date";
 function DashboardInner() {
   const { profile, readinessScore, hydrated, currentProcedure } = useProfile();
   const { isEmbed } = useViewMode();
-  const [tasks, setTasks] = useState<Task[]>(todayTasks);
+  const [tasks, setTasks] = useState<Task[]>(() => tasksFor(profile.procedureId));
+  // Re-seed tasks when the user changes procedures on /me. Different surgery,
+  // different prep list — local check-offs reset (which is the honest behavior).
+  useEffect(() => {
+    setTasks(tasksFor(profile.procedureId));
+  }, [profile.procedureId]);
   const remaining = tasks.filter((t) => t.status !== "done").length;
   const showOnboarding = hydrated && !profile.onboardingComplete;
 

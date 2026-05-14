@@ -8,7 +8,8 @@ import ScrollReveal, {
   StaggerGroup,
   StaggerItem,
 } from "@/components/ui/ScrollReveal";
-import { medications as defaultMedications, personalize } from "@/data/content";
+import { personalize } from "@/data/content";
+import { medsFor } from "@/data/procedure-customizations";
 import { useProfile } from "@/lib/profile-context";
 import { useViewMode } from "@/lib/view-mode-context";
 import MedicationsMobile from "@/components/mobile/MedicationsMobile";
@@ -47,7 +48,7 @@ export default function Medications() {
   const meds =
     profile.medications && profile.medications.length > 0
       ? profile.medications
-      : defaultMedications;
+      : medsFor(profile.procedureId);
   const usingDefaults =
     !profile.medications || profile.medications.length === 0;
   const stopCount = meds.filter((m) => m.status === "stop").length;

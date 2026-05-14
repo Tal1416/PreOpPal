@@ -1,17 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import BreathingOrb from "@/components/ui/BreathingOrb";
-import { todayTasks, careTeam, personalize, Task } from "@/data/content";
+import { careTeam, personalize, Task } from "@/data/content";
+import { tasksFor } from "@/data/procedure-customizations";
 import { useProfile } from "@/lib/profile-context";
 import { formatSurgeryDate } from "@/lib/date";
 
 export default function DashboardMobile() {
   const { profile, readinessScore, hydrated, currentProcedure } = useProfile();
-  const [tasks, setTasks] = useState<Task[]>(todayTasks);
+  const [tasks, setTasks] = useState<Task[]>(() => tasksFor(profile.procedureId));
+  useEffect(() => {
+    setTasks(tasksFor(profile.procedureId));
+  }, [profile.procedureId]);
   const remaining = tasks.filter((t) => t.status !== "done").length;
   const score = hydrated ? readinessScore : profile.readinessScore;
 

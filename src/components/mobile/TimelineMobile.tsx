@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { phases, personalize, phaseDetails, Phase } from "@/data/content";
+import { personalize, Phase } from "@/data/content";
+import { phasesFor, phaseDetailsFor } from "@/data/procedure-customizations";
 import { useProfile } from "@/lib/profile-context";
 import PhaseDetailModal from "@/components/timeline/PhaseDetailModal";
 
 export default function TimelineMobile() {
   const { profile } = useProfile();
+  const phases = phasesFor(profile.procedureId);
   const initialIndex = Math.max(
     0,
     phases.findIndex((p) => p.state === "current")
@@ -242,7 +244,11 @@ export default function TimelineMobile() {
         open={!!modalPhase}
         onClose={() => setModalPhase(null)}
         phase={modalPhase}
-        details={modalPhase ? phaseDetails[modalPhase.id] : undefined}
+        details={
+          modalPhase
+            ? phaseDetailsFor(profile.procedureId, modalPhase.id)
+            : undefined
+        }
       />
     </div>
   );

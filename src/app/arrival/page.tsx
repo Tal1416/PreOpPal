@@ -6,7 +6,8 @@ import PageShell from "@/components/layout/PageShell";
 import GlassCard from "@/components/ui/GlassCard";
 import ScrollReveal from "@/components/ui/ScrollReveal";
 import ArrivalMobile from "@/components/mobile/ArrivalMobile";
-import { arrivalSteps, personalize } from "@/data/content";
+import { personalize } from "@/data/content";
+import { arrivalStepsFor } from "@/data/procedure-customizations";
 import { useProfile } from "@/lib/profile-context";
 import { useViewMode } from "@/lib/view-mode-context";
 
@@ -19,6 +20,7 @@ export default function ArrivalGuide() {
   });
   const fill = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
   const { profile } = useProfile();
+  const arrivalSteps = arrivalStepsFor(profile.procedureId);
   const [notifyTeam, setNotifyTeam] = useState(false);
   const query = encodeURIComponent(
     `${profile.hospitalName}, ${profile.hospitalAddress}`

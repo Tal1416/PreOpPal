@@ -2,11 +2,13 @@
 
 import { useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { arrivalSteps, personalize } from "@/data/content";
+import { personalize } from "@/data/content";
+import { arrivalStepsFor } from "@/data/procedure-customizations";
 import { useProfile } from "@/lib/profile-context";
 
 export default function ArrivalMobile() {
   const { profile } = useProfile();
+  const arrivalSteps = arrivalStepsFor(profile.procedureId);
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,

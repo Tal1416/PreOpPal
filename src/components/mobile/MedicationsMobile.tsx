@@ -3,10 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  medications as defaultMedications,
-  personalize,
-} from "@/data/content";
+import { personalize } from "@/data/content";
+import { medsFor } from "@/data/procedure-customizations";
 import { useProfile } from "@/lib/profile-context";
 
 type Filter = "all" | "stop" | "continue" | "new";
@@ -38,7 +36,7 @@ export default function MedicationsMobile() {
   const meds =
     profile.medications && profile.medications.length > 0
       ? profile.medications
-      : defaultMedications;
+      : medsFor(profile.procedureId);
   const usingDefaults =
     !profile.medications || profile.medications.length === 0;
   const stopCount = meds.filter((m) => m.status === "stop").length;
