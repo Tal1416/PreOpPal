@@ -50,6 +50,56 @@ export default function Landing() {
           style={{ y: heroY, opacity: heroOpacity, scale: heroScale }}
           className="relative z-10 max-w-5xl text-center"
         >
+          {/* WHAT'S NEW — voice mode announcement */}
+          <motion.a
+            href="#meet-pal"
+            initial={{ opacity: 0, y: 20, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{
+              duration: 0.6,
+              delay: 0.05,
+              ease: [0.22, 1, 0.36, 1],
+            }}
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.98 }}
+            className="group relative inline-flex items-center gap-2 rounded-full glass-card-strong pl-1.5 pr-4 py-1.5 mb-8 shadow-[0_10px_30px_-12px_rgba(42,122,140,0.35)]"
+            aria-label="Try Talking to Pal — voice mode"
+          >
+            <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-[#7CFFA7] to-[#1c8a4e] text-white px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-[0.22em] shadow-[0_4px_10px_-2px_rgba(28,138,78,0.55)]">
+              <motion.span
+                aria-hidden
+                className="h-1.5 w-1.5 rounded-full bg-white"
+                animate={{ opacity: [1, 0.4, 1], scale: [1, 1.3, 1] }}
+                transition={{ duration: 1.6, repeat: Infinity }}
+              />
+              New
+            </span>
+            <span className="text-[12px] md:text-[13px] font-extrabold tracking-tight text-on-surface flex items-center gap-1.5">
+              Try <span className="hidden sm:inline">talking to</span>
+              <span className="sm:hidden">Talking to</span> Pal
+              <span aria-hidden className="text-on-surface-variant/50">·</span>
+              <span className="inline-flex items-center gap-1 text-primary">
+                <span className="material-symbols-outlined text-[14px]">
+                  graphic_eq
+                </span>
+                voice mode
+              </span>
+            </span>
+            <span
+              aria-hidden
+              className="material-symbols-outlined text-[16px] text-primary transition-transform group-hover:translate-x-0.5"
+            >
+              arrow_forward
+            </span>
+            {/* gentle attention ring */}
+            <motion.span
+              aria-hidden
+              className="pointer-events-none absolute inset-0 rounded-full ring-2 ring-[#7CFFA7]/50"
+              animate={{ scale: [1, 1.08, 1], opacity: [0.6, 0, 0.6] }}
+              transition={{ duration: 2.6, repeat: Infinity }}
+            />
+          </motion.a>
+
           <motion.h1
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
