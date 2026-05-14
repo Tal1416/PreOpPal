@@ -36,8 +36,13 @@ const inputCls =
   "w-full rounded-xl border border-white/60 bg-white/80 backdrop-blur-md px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/60 outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition";
 
 export default function OnboardingFlow() {
-  const { profile, updateProfile, setProcedure, completeOnboarding } =
-    useProfile();
+  const {
+    profile,
+    updateProfile,
+    setProcedure,
+    setCustomProcedure,
+    completeOnboarding,
+  } = useProfile();
   const [step, setStep] = useState<StepId>("procedure");
   const stepIdx = STEPS.findIndex((s) => s.id === step);
   const next = () => {
@@ -158,6 +163,8 @@ export default function OnboardingFlow() {
                   <ProcedurePicker
                     value={profile.procedureId}
                     onChange={setProcedure}
+                    onCustom={setCustomProcedure}
+                    customLabel={profile.procedure}
                   />
                 </section>
               )}

@@ -8,6 +8,7 @@ import { usePalExecutor } from "@/components/ai/use-pal-executor";
 import { useSpeechRecognition } from "@/lib/voice/use-speech-recognition";
 import { useSpeechSynthesis } from "@/lib/voice/use-speech-synthesis";
 import { useMicLevel } from "@/lib/voice/use-mic-level";
+import { useAuth } from "@/lib/auth-context";
 import { useProfile } from "@/lib/profile-context";
 
 type Phase = "idle" | "listening" | "thinking" | "speaking";
@@ -21,8 +22,15 @@ type Phase = "idle" | "listening" | "thinking" | "speaking";
 export default function VoiceOverlay() {
   const ai = useAI();
   const { profile } = useProfile();
+  const { isAuthenticated } = useAuth();
   const executor = usePalExecutor();
   const tts = useSpeechSynthesis();
+
+  // Voice is a signed-in only feature. If the overlay somehow opens while
+  // signed out (e.g. via stale state on a public page), close it.
+  useEffect(() => {
+    if (ai.voiceOverlay && !isAuthenticated) ai.setVoiceOverlay(false);
+  }, [ai, isAuthenticated]);
 
   const stt = useSpeechRecognition({
     onFinal: (text) => {

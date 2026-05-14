@@ -72,8 +72,14 @@ const emptyMedication: Omit<Medication, "id"> = {
 };
 
 function MePageInner() {
-  const { profile, updateProfile, resetProfile, readinessScore, setProcedure } =
-    useProfile();
+  const {
+    profile,
+    updateProfile,
+    resetProfile,
+    readinessScore,
+    setProcedure,
+    setCustomProcedure,
+  } = useProfile();
   const { isEmbed } = useViewMode();
   const [saved, setSaved] = useState(false);
   const [medModalOpen, setMedModalOpen] = useState(false);
@@ -220,6 +226,8 @@ function MePageInner() {
               <ProcedurePicker
                 value={profile.procedureId}
                 onChange={setProcedure}
+                onCustom={setCustomProcedure}
+                customLabel={profile.procedure}
               />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

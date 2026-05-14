@@ -5,12 +5,14 @@ import { useEffect, useRef, useState } from "react";
 import { useAI, SUGGESTIONS } from "@/components/ai/ai-store";
 import { usePalExecutor } from "@/components/ai/use-pal-executor";
 import { useSpeechRecognition } from "@/lib/voice/use-speech-recognition";
+import { useAuth } from "@/lib/auth-context";
 import { useProfile } from "@/lib/profile-context";
 import { useViewMode } from "@/lib/view-mode-context";
 
 export default function FAB() {
   const ai = useAI();
   const { profile } = useProfile();
+  const { isAuthenticated } = useAuth();
   const { isEmbed } = useViewMode();
   const executor = usePalExecutor();
   const [input, setInput] = useState("");
@@ -159,22 +161,24 @@ export default function FAB() {
                   AI Companion · Always with you
                 </p>
               </div>
-              <motion.button
-                whileTap={{ scale: 0.92 }}
-                whileHover={{ scale: 1.06 }}
-                onClick={openVoiceOverlay}
-                aria-label="Open voice conversation"
-                title="Talk to Pal"
-                className="relative h-9 w-9 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center border border-white/25"
-              >
-                <span className="material-symbols-outlined text-[18px]">
-                  graphic_eq
-                </span>
-                <span
-                  aria-hidden
-                  className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-[#7CFFA7] ring-2 ring-[#0e3640]"
-                />
-              </motion.button>
+              {isAuthenticated && (
+                <motion.button
+                  whileTap={{ scale: 0.92 }}
+                  whileHover={{ scale: 1.06 }}
+                  onClick={openVoiceOverlay}
+                  aria-label="Open voice conversation"
+                  title="Talk to Pal"
+                  className="relative h-9 w-9 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center border border-white/25"
+                >
+                  <span className="material-symbols-outlined text-[18px]">
+                    graphic_eq
+                  </span>
+                  <span
+                    aria-hidden
+                    className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-[#7CFFA7] ring-2 ring-[#0e3640]"
+                  />
+                </motion.button>
+              )}
               <button
                 onClick={() => ai.setOpen(false)}
                 aria-label="Close"

@@ -31,6 +31,13 @@ type Ctx = {
    */
   currentProcedure: Procedure;
   setProcedure: (procedureId: string) => void;
+  /**
+   * Use a user-provided procedure name that isn't in the catalog. We keep
+   * a sensible template (defaults to general "knee" data) so the rest of
+   * the app — bag, timeline, Pal — still has structured content to render,
+   * but the displayed name reflects what the patient actually typed.
+   */
+  setCustomProcedure: (name: string) => void;
   completeOnboarding: () => void;
 };
 
@@ -113,6 +120,18 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     }));
   };
 
+  const setCustomProcedure = (name: string) => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    setProfile((p) => ({
+      ...p,
+      // Keep a template procedure for downstream content (bag, timeline) but
+      // surface the user's name everywhere we display it.
+      procedureId: p.procedureId || "knee",
+      procedure: trimmed,
+    }));
+  };
+
   const completeOnboarding = () =>
     setProfile((p) => ({ ...p, onboardingComplete: true }));
 
@@ -136,6 +155,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         readinessScore,
         currentProcedure,
         setProcedure,
+        setCustomProcedure,
         completeOnboarding,
       }}
     >

@@ -48,8 +48,14 @@ const emptyMedication: Omit<Medication, "id"> = {
 };
 
 export default function MeMobile() {
-  const { profile, updateProfile, resetProfile, readinessScore, setProcedure } =
-    useProfile();
+  const {
+    profile,
+    updateProfile,
+    resetProfile,
+    readinessScore,
+    setProcedure,
+    setCustomProcedure,
+  } = useProfile();
   const [active, setActive] = useState<SectionId>("personal");
   const [saved, setSaved] = useState(false);
   const [medModalOpen, setMedModalOpen] = useState(false);
@@ -250,6 +256,8 @@ export default function MeMobile() {
                   variant="compact"
                   value={profile.procedureId}
                   onChange={setProcedure}
+                  onCustom={setCustomProcedure}
+                  customLabel={profile.procedure}
                 />
               </div>
               <Field label="Surgeon">

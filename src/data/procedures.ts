@@ -203,6 +203,180 @@ export const procedures: Procedure[] = [
     palContext:
       "This is laparoscopic mesh hernia repair. Concerns to anticipate: strict lifting restriction (10 lb / 4 weeks), constipation from anesthesia + opioids, gradual return to exercise, and recognizing recurrence (bulge returning at incision).",
   },
+  {
+    id: "appendectomy",
+    name: "Appendectomy",
+    shortName: "Appendix",
+    icon: "emergency",
+    emoji: "🚨",
+    accent: "from-[#fecaca] to-[#991b1b]",
+    bodyRegion: "Lower abdomen",
+    hospitalStay: "1–2 nights",
+    recoveryWindow: "1–3 weeks",
+    description:
+      "Laparoscopic removal of the appendix. Usually urgent rather than scheduled, general anesthesia.",
+    bagItems: [
+      { id: "app-loose", label: "Loose-waist pants — no pressure on incisions" },
+      { id: "app-pillow", label: "Pillow to brace your belly when coughing" },
+      { id: "app-charger", label: "Charger — admission lengths vary" },
+      { id: "app-stool", label: "Stool softener" },
+    ],
+    bagSectionTitle: "For your appendectomy",
+    bagSectionTagline: "Comfort, mobility, and gentle return to food.",
+    careTip: {
+      icon: "directions_walk",
+      title: "Walk early, walk often",
+      detail:
+        "Short laps around the room within hours of waking up reduce CO₂ shoulder pain and prevent post-op clots. Slow is fine — just keep moving.",
+    },
+    palContext:
+      "This is laparoscopic appendectomy. Concerns to anticipate: incision care, early ambulation, post-anesthesia nausea, gradual diet advancement, and watching for signs of infection (fever, redness, increased pain).",
+  },
+  {
+    id: "hip",
+    name: "Hip Replacement",
+    shortName: "Hip",
+    icon: "accessibility",
+    emoji: "🦴",
+    accent: "from-[#bae6fd] to-[#075985]",
+    bodyRegion: "Lower limb",
+    hospitalStay: "1–3 nights",
+    recoveryWindow: "8–12 weeks",
+    description:
+      "Total hip arthroplasty with a metal-and-polymer implant. Inpatient, regional or general anesthesia, hip precautions for 6 weeks.",
+    bagItems: [
+      { id: "hip-grabber", label: "Reacher / grabber tool — you can't bend past 90°" },
+      { id: "hip-sock", label: "Sock aid and long-handled shoehorn" },
+      { id: "hip-cushion", label: "Wedge cushion to keep hips at safe angle" },
+      { id: "hip-walker", label: "Walker pre-fitted by PT" },
+    ],
+    bagSectionTitle: "For your hip replacement",
+    bagSectionTagline: "Adaptive tools that protect the new joint.",
+    careTip: {
+      icon: "warning",
+      title: "Hip precautions for 6 weeks",
+      detail:
+        "Don't cross your legs, don't bend past 90°, don't twist the operated leg inward. Set up your home so nothing forces a violation.",
+    },
+    palContext:
+      "This is total hip arthroplasty. Concerns to anticipate: posterior hip precautions (no crossing legs, no bending past 90°, no inward rotation), DVT prevention, home setup before surgery (raised toilet seat, grab bars), and PT cadence.",
+  },
+  {
+    id: "tonsillectomy",
+    name: "Tonsillectomy",
+    shortName: "Tonsils",
+    icon: "front_hand",
+    emoji: "👄",
+    accent: "from-[#fbcfe8] to-[#831843]",
+    bodyRegion: "Throat",
+    hospitalStay: "Outpatient",
+    recoveryWindow: "10–14 days",
+    description:
+      "Removal of the tonsils under general anesthesia. Outpatient for most, painful sore throat for ~10 days after.",
+    bagItems: [
+      { id: "ton-cold", label: "Popsicles, ice cream, ice chips — bought ahead" },
+      { id: "ton-humidifier", label: "Cool-mist humidifier for the bedroom" },
+      { id: "ton-soft", label: "Yogurt, pudding, mashed potatoes — soft only" },
+      { id: "ton-tylenol", label: "Liquid acetaminophen (no aspirin/NSAIDs)" },
+    ],
+    bagSectionTitle: "For your tonsillectomy",
+    bagSectionTagline: "Cold, soft, hydrated — for ten days.",
+    careTip: {
+      icon: "water_drop",
+      title: "Hydration is the only job",
+      detail:
+        "Dehydration is the #1 reason for ER returns. Drink something every 20 minutes while awake, even if it stings. Cool > cold > anything hot.",
+    },
+    palContext:
+      "This is a tonsillectomy under general anesthesia. Concerns to anticipate: severe sore throat peaking days 3-7, hydration above all else (popsicles count), referred ear pain (normal), avoiding NSAIDs/aspirin (bleed risk), and watching for post-op bleeding which is a 911 emergency.",
+  },
+  {
+    id: "acl",
+    name: "ACL Reconstruction",
+    shortName: "ACL",
+    icon: "directions_run",
+    emoji: "🏃",
+    accent: "from-[#bbf7d0] to-[#15803d]",
+    bodyRegion: "Knee · ligament",
+    hospitalStay: "Outpatient",
+    recoveryWindow: "6–9 months",
+    description:
+      "Arthroscopic ACL graft (hamstring, patellar tendon, or allograft). Outpatient, brace and crutches after, PT for months.",
+    bagItems: [
+      { id: "acl-brace", label: "Pre-fitted hinged knee brace" },
+      { id: "acl-crutch", label: "Crutches sized to your height" },
+      { id: "acl-ice", label: "Cold-therapy machine or 3+ ice packs" },
+      { id: "acl-pants", label: "Loose shorts or pants that fit over the brace" },
+    ],
+    bagSectionTitle: "For your ACL repair",
+    bagSectionTagline: "Long recovery starts with the first week of icing.",
+    careTip: {
+      icon: "ac_unit",
+      title: "Ice 20 minutes every 2 hours",
+      detail:
+        "Aggressive icing in the first 72 hours reduces swelling, pain, and PT delay. A cold-therapy machine is worth every penny.",
+    },
+    palContext:
+      "This is arthroscopic ACL reconstruction. Concerns to anticipate: aggressive icing for first 72h, brace settings per surgeon, PT starting within days, weight-bearing instructions, opioids vs NSAIDs (some surgeons avoid NSAIDs early because they slow ligament healing), and the long psychological haul of 6-9 month return-to-sport.",
+  },
+  {
+    id: "carpal-tunnel",
+    name: "Carpal Tunnel Release",
+    shortName: "Carpal Tunnel",
+    icon: "back_hand",
+    emoji: "✋",
+    accent: "from-[#fde68a] to-[#92400e]",
+    bodyRegion: "Wrist",
+    hospitalStay: "Outpatient · 30 min",
+    recoveryWindow: "2–6 weeks",
+    description:
+      "Open or endoscopic transection of the transverse carpal ligament. Local anesthesia, awake, very short procedure.",
+    bagItems: [
+      { id: "ct-sling", label: "Sling or shoulder strap to keep hand elevated" },
+      { id: "ct-driver", label: "Driver — you can't drive for ~48h" },
+      { id: "ct-shirts", label: "Button-front shirts (no pulling over the head)" },
+      { id: "ct-bag", label: "Plastic bag for showering — keep dressing dry" },
+    ],
+    bagSectionTitle: "For your carpal tunnel release",
+    bagSectionTagline: "Elevation, dryness, and patience.",
+    careTip: {
+      icon: "front_hand",
+      title: "Elevate above your heart",
+      detail:
+        "Swelling causes 90% of the early pain. Sleep with your hand on two pillows for the first week — pain drops dramatically.",
+    },
+    palContext:
+      "This is open or endoscopic carpal tunnel release. Concerns to anticipate: elevation above heart for the first week, keeping the dressing dry, regaining grip strength gradually, pillar pain (normal for weeks), and full sensory recovery taking 6+ months for severe pre-op cases.",
+  },
+  {
+    id: "lasik",
+    name: "LASIK",
+    shortName: "LASIK",
+    icon: "remove_red_eye",
+    emoji: "👀",
+    accent: "from-[#a5b4fc] to-[#3730a3]",
+    bodyRegion: "Eye · refractive",
+    hospitalStay: "Outpatient · 30 min",
+    recoveryWindow: "1–2 weeks",
+    description:
+      "Laser reshaping of the cornea to correct refractive error. Topical anesthesia, awake, both eyes in one visit.",
+    bagItems: [
+      { id: "la-shades", label: "Wraparound dark sunglasses for the ride home" },
+      { id: "la-shield", label: "Sleep shields (clinic provides)" },
+      { id: "la-drops", label: "Prescription artificial tears + antibiotic drops" },
+      { id: "la-driver", label: "Confirm driver — you cannot drive home" },
+    ],
+    bagSectionTitle: "For your LASIK",
+    bagSectionTagline: "Drops, shades, and zero rubbing.",
+    careTip: {
+      icon: "visibility_off",
+      title: "Don't touch your eyes for a week",
+      detail:
+        "Sleep shields the first 3 nights. No rubbing, no makeup, no swimming for 2 weeks. The first 24 hours determine the final result.",
+    },
+    palContext:
+      "This is bilateral LASIK with femtosecond flap creation. Concerns to anticipate: aggressive drop regimen (steroid + antibiotic + artificial tears), no eye rubbing for a week, sleep shields for 3 nights, halos/glare at night for 1-3 months, and dry eye for weeks to months.",
+  },
 ];
 
 export const proceduresById = Object.fromEntries(
