@@ -3,16 +3,18 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { useAI, SUGGESTIONS } from "./ai-store";
+import { usePalExecutor } from "./use-pal-executor";
 import { useProfile } from "@/lib/profile-context";
 
 export default function AICompanionCard() {
   const ai = useAI();
   const { profile } = useProfile();
+  const executor = usePalExecutor();
   const [input, setInput] = useState("");
 
   function ask(text: string) {
     if (!text.trim()) return;
-    ai.send(text, profile);
+    ai.send(text, profile, executor);
     setInput("");
     ai.setOpen(true); // open the drawer so the conversation continues
   }
@@ -119,6 +121,23 @@ export default function AICompanionCard() {
               placeholder="Ask Pal anything…"
               className="flex-1 bg-transparent outline-none text-white placeholder:text-white/60 text-base"
             />
+            <motion.button
+              type="button"
+              onClick={() => ai.setVoiceOverlay(true)}
+              whileTap={{ scale: 0.94 }}
+              whileHover={{ scale: 1.04 }}
+              aria-label="Talk to Pal"
+              title="Talk to Pal — voice mode"
+              className="relative h-10 w-10 rounded-xl bg-white/20 hover:bg-white/30 text-white flex items-center justify-center border border-white/30"
+            >
+              <span className="material-symbols-outlined text-[20px]">
+                graphic_eq
+              </span>
+              <span
+                aria-hidden
+                className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-[#7CFFA7] ring-2 ring-[#0a6879]"
+              />
+            </motion.button>
             <motion.button
               type="submit"
               whileTap={{ scale: 0.94 }}

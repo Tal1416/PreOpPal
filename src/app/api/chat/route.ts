@@ -9,6 +9,7 @@ export const maxDuration = 30;
 type ChatBody = {
   messages: ModelMessage[];
   profile: PalProfileContext;
+  voiceMode?: boolean;
 };
 
 export async function POST(req: Request) {
@@ -29,17 +30,17 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const { messages, profile } = body;
+  const { messages, profile, voiceMode } = body;
   if (!Array.isArray(messages) || messages.length === 0) {
     return NextResponse.json({ error: "Missing messages" }, { status: 400 });
   }
 
   const result = streamText({
     model: google("gemini-3-flash-preview"),
-    system: buildPalSystemPrompt(profile),
+    system: buildPalSystemPrompt(profile, { voiceMode: !!voiceMode }),
     messages,
     temperature: 0.6,
-    maxOutputTokens: 1500,
+    maxOutputTokens: voiceMode ? 400 : 1500,
   });
 
   return result.toTextStreamResponse();

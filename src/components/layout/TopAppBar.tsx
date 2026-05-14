@@ -8,6 +8,7 @@ import { useViewMode } from "@/lib/view-mode-context";
 import AvatarPicker from "@/components/ui/AvatarPicker";
 import NotificationsPanel from "./NotificationsPanel";
 import ViewModeToggle from "./ViewModeToggle";
+import PairButton from "@/components/pairing/PairButton";
 
 const TITLES: Record<string, string> = {
   "/dashboard": "Dashboard",
@@ -95,6 +96,9 @@ export default function TopAppBar() {
       </div>
 
       <div className="flex items-center gap-3">
+        <div className="hidden lg:flex">
+          <PairButton variant="inline" />
+        </div>
         <ViewModeToggle inline />
         <button
           aria-label="Notifications"

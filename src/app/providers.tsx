@@ -8,6 +8,11 @@ import Lenis from "@studio-freight/lenis";
 import GradientMesh from "@/components/ui/GradientMesh";
 import PhoneFrame from "@/components/layout/PhoneFrame";
 import ViewModeToggle from "@/components/layout/ViewModeToggle";
+import ServiceWorkerRegister from "@/components/pwa/ServiceWorkerRegister";
+import InstallPrompt from "@/components/pwa/InstallPrompt";
+import VoiceOverlay from "@/components/ai/VoiceOverlay";
+import PairButton from "@/components/pairing/PairButton";
+import PairedToast from "@/components/pairing/PairedToast";
 import { ProfileProvider } from "@/lib/profile-context";
 import { AuthProvider } from "@/lib/auth-context";
 import { ViewModeProvider, useViewMode } from "@/lib/view-mode-context";
@@ -71,6 +76,11 @@ export default function Providers({
           <GradientMesh />
           <ScrollProgress />
           <ViewModeShell>{children}</ViewModeShell>
+          <VoiceOverlay />
+          <PairButton />
+          <PairedToast />
+          <ServiceWorkerRegister />
+          <InstallPrompt />
         </ViewModeProvider>
       </ProfileProvider>
     </AuthProvider>

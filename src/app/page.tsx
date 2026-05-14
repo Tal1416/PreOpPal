@@ -359,8 +359,22 @@ export default function Landing() {
         </ScrollReveal>
       </section>
 
-      <footer className="relative pb-12 text-center text-xs text-on-surface-variant/60">
-        © 2026 PreOpPal · A clinical sanctuary
+      <footer className="relative pb-12 flex flex-col items-center gap-3 text-xs text-on-surface-variant/60">
+        <Link
+          href="/case-study"
+          className="inline-flex items-center gap-2 rounded-full glass-card-strong px-4 py-2 text-primary hover:scale-[1.03] transition-transform"
+        >
+          <span className="material-symbols-outlined text-[16px]">
+            science
+          </span>
+          <span className="text-[11px] font-extrabold uppercase tracking-[0.22em]">
+            Read the case study
+          </span>
+          <span className="material-symbols-outlined text-[14px]">
+            arrow_forward
+          </span>
+        </Link>
+        <span>© 2026 PreOpPal · A clinical sanctuary</span>
       </footer>
     </PageShell>
   );

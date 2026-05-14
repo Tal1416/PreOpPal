@@ -3,6 +3,8 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { useAI, SUGGESTIONS } from "@/components/ai/ai-store";
+import { usePalExecutor } from "@/components/ai/use-pal-executor";
+import { useSpeechRecognition } from "@/lib/voice/use-speech-recognition";
 import { useProfile } from "@/lib/profile-context";
 import { useViewMode } from "@/lib/view-mode-context";
 
@@ -10,8 +12,17 @@ export default function FAB() {
   const ai = useAI();
   const { profile } = useProfile();
   const { isEmbed } = useViewMode();
+  const executor = usePalExecutor();
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // One-shot mic for the chat input. The fullscreen voice flow lives in VoiceOverlay.
+  const stt = useSpeechRecognition({
+    onFinal: (text) => {
+      ai.send(text, profile, executor);
+      setInput("");
+    },
+  });
 
   useEffect(() => {
     if (!ai.open) return;
@@ -20,10 +31,23 @@ export default function FAB() {
     node.scrollTop = node.scrollHeight;
   }, [ai.messages, ai.typing, ai.open]);
 
+  // Mirror the in-flight transcript into the input so the user sees what's heard.
+  useEffect(() => {
+    if (!stt.listening) return;
+    const live = (stt.transcript + " " + stt.interim).trim();
+    if (live) setInput(live);
+  }, [stt.transcript, stt.interim, stt.listening]);
+
   function send() {
     if (!input.trim()) return;
-    ai.send(input, profile);
+    ai.send(input, profile, executor);
     setInput("");
+  }
+
+  function openVoiceOverlay() {
+    ai.setOpen(false);
+    ai.setVoiceOverlay(true);
+    if ("vibrate" in navigator) navigator.vibrate?.(10);
   }
 
   return (
@@ -135,6 +159,22 @@ export default function FAB() {
                   AI Companion · Always with you
                 </p>
               </div>
+              <motion.button
+                whileTap={{ scale: 0.92 }}
+                whileHover={{ scale: 1.06 }}
+                onClick={openVoiceOverlay}
+                aria-label="Open voice conversation"
+                title="Talk to Pal"
+                className="relative h-9 w-9 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center border border-white/25"
+              >
+                <span className="material-symbols-outlined text-[18px]">
+                  graphic_eq
+                </span>
+                <span
+                  aria-hidden
+                  className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-[#7CFFA7] ring-2 ring-[#0e3640]"
+                />
+              </motion.button>
               <button
                 onClick={() => ai.setOpen(false)}
                 aria-label="Close"
@@ -173,23 +213,42 @@ export default function FAB() {
                         </span>
                       </div>
                     )}
-                    <div
-                      className={`max-w-[80%] px-3.5 py-2 rounded-2xl text-[14px] leading-snug whitespace-pre-wrap break-words ${
-                        msg.from === "user"
-                          ? "bg-primary text-white rounded-br-md"
-                          : "bg-white text-on-surface rounded-bl-md border border-white"
-                      }`}
-                    >
-                      {msg.text}
-                      <p
-                        className={`mt-1 text-[10px] ${
-                          msg.from === "user"
-                            ? "text-white/60"
-                            : "text-on-surface-variant/60"
-                        }`}
-                      >
-                        {msg.time}
-                      </p>
+                    <div className={`max-w-[80%] flex flex-col gap-1.5 ${msg.from === "user" ? "items-end" : "items-start"}`}>
+                      {(msg.text.trim() || !msg.actions?.length) && (
+                        <div
+                          className={`px-3.5 py-2 rounded-2xl text-[14px] leading-snug whitespace-pre-wrap break-words ${
+                            msg.from === "user"
+                              ? "bg-primary text-white rounded-br-md"
+                              : "bg-white text-on-surface rounded-bl-md border border-white"
+                          }`}
+                        >
+                          {msg.text}
+                          <p
+                            className={`mt-1 text-[10px] ${
+                              msg.from === "user"
+                                ? "text-white/60"
+                                : "text-on-surface-variant/60"
+                            }`}
+                          >
+                            {msg.time}
+                          </p>
+                        </div>
+                      )}
+                      {msg.actions?.map((r, i) => (
+                        <div
+                          key={i}
+                          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold ${
+                            r.ok
+                              ? "bg-gradient-to-r from-[#88d1e5] to-[#006172] text-white"
+                              : "bg-error/10 text-error"
+                          }`}
+                        >
+                          <span className="material-symbols-outlined text-[14px]">
+                            {r.icon}
+                          </span>
+                          {r.label}
+                        </div>
+                      ))}
                     </div>
                   </motion.div>
                 ))}
@@ -234,7 +293,7 @@ export default function FAB() {
                 {SUGGESTIONS.slice(0, 3).map((s) => (
                   <button
                     key={s}
-                    onClick={() => ai.send(s, profile)}
+                    onClick={() => ai.send(s, profile, executor)}
                     className="text-[11px] rounded-full bg-primary-fixed/40 text-primary border border-primary/20 px-2.5 py-1 hover:bg-primary hover:text-white transition-colors"
                   >
                     {s}
@@ -254,9 +313,38 @@ export default function FAB() {
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask Pal anything…"
+                placeholder={
+                  stt.listening ? "Listening…" : "Ask Pal anything…"
+                }
                 className="flex-1 bg-white rounded-full px-4 py-2.5 outline-none text-sm border border-white/80 placeholder:text-on-surface-variant/60 focus:ring-2 focus:ring-primary/30"
               />
+              {stt.supported && (
+                <motion.button
+                  type="button"
+                  onClick={() => (stt.listening ? stt.stop() : stt.start())}
+                  whileTap={{ scale: 0.92 }}
+                  whileHover={{ scale: 1.05 }}
+                  aria-label={stt.listening ? "Stop listening" : "Talk to Pal"}
+                  title={stt.listening ? "Stop listening" : "Tap to speak"}
+                  className={`relative h-10 w-10 rounded-full flex items-center justify-center transition-colors ${
+                    stt.listening
+                      ? "bg-rose-500 text-white"
+                      : "bg-white text-primary border border-white/80"
+                  }`}
+                >
+                  {stt.listening && (
+                    <motion.span
+                      aria-hidden
+                      className="absolute inset-0 rounded-full bg-rose-500"
+                      animate={{ scale: [1, 1.45, 1], opacity: [0.4, 0, 0.4] }}
+                      transition={{ duration: 1.4, repeat: Infinity }}
+                    />
+                  )}
+                  <span className="relative material-symbols-outlined text-xl">
+                    {stt.listening ? "stop" : "mic"}
+                  </span>
+                </motion.button>
+              )}
               <motion.button
                 type="submit"
                 whileTap={{ scale: 0.92 }}

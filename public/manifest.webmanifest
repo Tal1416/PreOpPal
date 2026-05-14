@@ -1,0 +1,63 @@
+{
+  "name": "PreOpPal — Your Surgery, Organized.",
+  "short_name": "PreOpPal",
+  "description": "A calm, AI-guided pre-op companion. Track your readiness, breathe through anxiety, and prepare with confidence.",
+  "start_url": "/dashboard?utm_source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#f6fbfb",
+  "theme_color": "#006172",
+  "lang": "en-US",
+  "dir": "ltr",
+  "categories": ["health", "medical", "lifestyle"],
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Open Pal",
+      "short_name": "Pal",
+      "description": "Talk to your AI companion",
+      "url": "/dashboard?pal=1",
+      "icons": [{ "src": "/icons/icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Timeline",
+      "short_name": "Timeline",
+      "description": "Your pre-op timeline",
+      "url": "/timeline",
+      "icons": [{ "src": "/icons/icon.svg", "sizes": "any" }]
+    }
+  ]
+}

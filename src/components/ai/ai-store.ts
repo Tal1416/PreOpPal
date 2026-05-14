@@ -2,13 +2,22 @@
 
 import { useEffect, useState } from "react";
 import type { PalProfileContext } from "@/lib/pal-prompt";
+import {
+  parsePalActions,
+  stripPartialActions,
+  type PalAction,
+  type PalActionResult,
+} from "@/lib/pal-actions";
 
 export type AIMessage = {
   id: string;
   from: "user" | "ai";
   text: string;
   time: string;
+  actions?: PalActionResult[];
 };
+
+export type PalActionExecutor = (action: PalAction) => PalActionResult;
 
 export const SUGGESTIONS = [
   "What can I eat the night before?",
@@ -17,11 +26,18 @@ export const SUGGESTIONS = [
   "Walk me through my arrival timing.",
 ];
 
+const VOICE_KEY = "preoppal-voice-mode";
+
 let listeners: Set<() => void> = new Set();
+/** Streaming chunk subscribers. Receive (messageId, deltaText, done). */
+let chunkListeners: Set<(messageId: string, delta: string, done: boolean) => void> =
+  new Set();
 let abortCtrl: AbortController | null = null;
 
 let state = {
   open: false,
+  voiceMode: false,
+  voiceOverlay: false,
   messages: [
     {
       id: "seed",
@@ -57,7 +73,20 @@ function patchMessage(id: string, patch: Partial<AIMessage>) {
   notify();
 }
 
-async function streamReply(profile: PalProfileContext) {
+function notifyChunk(messageId: string, delta: string, done: boolean) {
+  chunkListeners.forEach((l) => {
+    try {
+      l(messageId, delta, done);
+    } catch {
+      // ignore subscriber errors
+    }
+  });
+}
+
+async function streamReply(
+  profile: PalProfileContext,
+  executor?: PalActionExecutor
+) {
   // Build the messages payload from non-seed history.
   const history = state.messages
     .filter((m) => m.id !== "seed")
@@ -84,7 +113,11 @@ async function streamReply(profile: PalProfileContext) {
     const res = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: history, profile }),
+      body: JSON.stringify({
+        messages: history,
+        profile,
+        voiceMode: state.voiceMode,
+      }),
       signal: abortCtrl.signal,
     });
 
@@ -92,11 +125,11 @@ async function streamReply(profile: PalProfileContext) {
       const errBody = await res
         .json()
         .catch(() => ({ error: "Pal couldn't reach the model." }));
-      patchMessage(placeholderId, {
-        text:
-          errBody.error ??
-          "Pal couldn't reach the model right now. Check your connection and try again.",
-      });
+      const msg =
+        errBody.error ??
+        "Pal couldn't reach the model right now. Check your connection and try again.";
+      patchMessage(placeholderId, { text: msg });
+      notifyChunk(placeholderId, msg, true);
       setState({ typing: false });
       return;
     }
@@ -104,24 +137,53 @@ async function streamReply(profile: PalProfileContext) {
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let acc = "";
+    let lastVisible = "";
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
       acc += decoder.decode(value, { stream: true });
-      patchMessage(placeholderId, { text: acc });
+      const visible = stripPartialActions(acc);
+      const delta = visible.slice(lastVisible.length);
+      lastVisible = visible;
+      patchMessage(placeholderId, { text: visible });
+      if (delta) notifyChunk(placeholderId, delta, false);
     }
     // Flush any remaining bytes from the decoder (multi-byte tail).
     acc += decoder.decode();
-    patchMessage(placeholderId, { text: acc });
+    const { strippedText, actions } = parsePalActions(acc);
+    const finalDelta = strippedText.slice(lastVisible.length);
+    const results: PalActionResult[] = executor
+      ? actions.map((a) => executor(a))
+      : [];
+    patchMessage(placeholderId, {
+      text: strippedText,
+      actions: results.length > 0 ? results : undefined,
+    });
+    if (finalDelta) notifyChunk(placeholderId, finalDelta, false);
+    notifyChunk(placeholderId, "", true);
     setState({ typing: false });
   } catch (err) {
     if ((err as Error).name === "AbortError") return;
-    patchMessage(placeholderId, {
-      text:
-        "I hit a snag reaching the model. Please try again in a moment — and if this keeps happening, your care team is one tap away on the Care page.",
-    });
+    const msg =
+      "I hit a snag reaching the model. Please try again in a moment — and if this keeps happening, your care team is one tap away on the Care page.";
+    patchMessage(placeholderId, { text: msg });
+    notifyChunk(placeholderId, msg, true);
     setState({ typing: false });
   }
+}
+
+/**
+ * Subscribe to streaming chunks of the active AI reply. The callback receives
+ * (messageId, deltaText, done). Use this to pipe live text into a TTS engine
+ * without re-speaking earlier chunks.
+ */
+export function subscribeToStream(
+  cb: (messageId: string, delta: string, done: boolean) => void,
+): () => void {
+  chunkListeners.add(cb);
+  return () => {
+    chunkListeners.delete(cb);
+  };
 }
 
 export function useAI() {
@@ -129,6 +191,18 @@ export function useAI() {
   useEffect(() => {
     const fn = () => force((n) => n + 1);
     listeners.add(fn);
+    // Hydrate voiceMode from localStorage once.
+    if (!state.voiceMode) {
+      try {
+        const stored = localStorage.getItem(VOICE_KEY);
+        if (stored === "1") {
+          state = { ...state, voiceMode: true };
+          notify();
+        }
+      } catch {
+        // ignore
+      }
+    }
     return () => {
       listeners.delete(fn);
     };
@@ -137,9 +211,25 @@ export function useAI() {
     open: state.open,
     messages: state.messages,
     typing: state.typing,
+    voiceMode: state.voiceMode,
+    voiceOverlay: state.voiceOverlay,
     setOpen: (o: boolean) => setState({ open: o }),
     toggle: () => setState({ open: !state.open }),
-    send: (text: string, profile: PalProfileContext) => {
+    setVoiceMode: (on: boolean) => {
+      setState({ voiceMode: on, voiceOverlay: on ? state.voiceOverlay : false });
+      try {
+        localStorage.setItem(VOICE_KEY, on ? "1" : "0");
+      } catch {
+        // ignore
+      }
+    },
+    setVoiceOverlay: (on: boolean) =>
+      setState({ voiceOverlay: on, voiceMode: on ? true : state.voiceMode }),
+    send: (
+      text: string,
+      profile: PalProfileContext,
+      executor?: PalActionExecutor
+    ) => {
       const t = text.trim();
       if (!t) return;
       const userMsg: AIMessage = {
@@ -150,7 +240,7 @@ export function useAI() {
       };
       state = { ...state, messages: [...state.messages, userMsg] };
       notify();
-      void streamReply(profile);
+      void streamReply(profile, executor);
     },
   };
 }

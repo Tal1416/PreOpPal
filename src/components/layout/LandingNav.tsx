@@ -14,6 +14,7 @@ const NAV_LINKS = [
   { to: "/bag", label: "Bag" },
   { to: "/care", label: "Care" },
   { to: "/arrival", label: "Arrival" },
+  { to: "/case-study", label: "Case study" },
 ];
 
 export default function LandingNav() {
