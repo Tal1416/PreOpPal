@@ -10,7 +10,7 @@ import { useProfile } from "@/lib/profile-context";
 import { formatSurgeryDate } from "@/lib/date";
 
 export default function DashboardMobile() {
-  const { profile, readinessScore, hydrated } = useProfile();
+  const { profile, readinessScore, hydrated, currentProcedure } = useProfile();
   const [tasks, setTasks] = useState<Task[]>(todayTasks);
   const remaining = tasks.filter((t) => t.status !== "done").length;
   const score = hydrated ? readinessScore : profile.readinessScore;
@@ -69,17 +69,23 @@ export default function DashboardMobile() {
             </span>
             <div className="pb-2">
               <p className="text-sm font-semibold leading-tight">days to go</p>
-              <p className="text-[11px] text-white/70 mt-0.5">
+              <p className="text-[11px] text-white/70 mt-0.5 flex items-center gap-1">
+                <span aria-hidden>{currentProcedure.emoji}</span>
                 {profile.procedure}
               </p>
             </div>
           </div>
-          <div className="mt-4 flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md border border-white/20 px-3 py-1.5 w-fit">
-            <span className="material-symbols-outlined text-[#acedff] text-base">
-              event
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/20 px-3 py-1.5">
+              <span className="material-symbols-outlined text-[#acedff] text-base">
+                event
+              </span>
+              <span className="text-xs font-bold tracking-tight">
+                {surgeryDateLabel}
+              </span>
             </span>
-            <span className="text-xs font-bold tracking-tight">
-              {surgeryDateLabel}
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/20 px-3 py-1.5 text-[11px] font-bold tracking-tight">
+              Recovery {currentProcedure.recoveryWindow}
             </span>
           </div>
         </div>

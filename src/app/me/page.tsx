@@ -5,6 +5,7 @@ import { useState } from "react";
 import PageShell from "@/components/layout/PageShell";
 import GlassCard from "@/components/ui/GlassCard";
 import Modal from "@/components/ui/Modal";
+import ProcedurePicker from "@/components/ui/ProcedurePicker";
 import ScrollReveal from "@/components/ui/ScrollReveal";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { useProfile } from "@/lib/profile-context";
@@ -71,7 +72,8 @@ const emptyMedication: Omit<Medication, "id"> = {
 };
 
 function MePageInner() {
-  const { profile, updateProfile, resetProfile, readinessScore } = useProfile();
+  const { profile, updateProfile, resetProfile, readinessScore, setProcedure } =
+    useProfile();
   const { isEmbed } = useViewMode();
   const [saved, setSaved] = useState(false);
   const [medModalOpen, setMedModalOpen] = useState(false);
@@ -213,17 +215,14 @@ function MePageInner() {
               title="Upcoming surgery"
               description="What you're preparing for, and where."
             />
+            <div className="mb-6">
+              <span className={labelCls}>Procedure</span>
+              <ProcedurePicker
+                value={profile.procedureId}
+                onChange={setProcedure}
+              />
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <Field label="Procedure">
-                <input
-                  className={inputCls}
-                  value={profile.procedure}
-                  onChange={(e) =>
-                    updateProfile({ procedure: e.target.value })
-                  }
-                  placeholder="Knee Replacement"
-                />
-              </Field>
               <Field label="Surgeon">
                 <input
                   className={inputCls}

@@ -15,21 +15,24 @@ import ScrollReveal, {
 } from "@/components/ui/ScrollReveal";
 import AICompanionCard from "@/components/ai/AICompanionCard";
 import DashboardMobile from "@/components/mobile/DashboardMobile";
+import OnboardingFlow from "@/components/onboarding/OnboardingFlow";
 import { todayTasks, careTeam, personalize, Task } from "@/data/content";
 import { useProfile } from "@/lib/profile-context";
 import { useViewMode } from "@/lib/view-mode-context";
 import { formatSurgeryDate } from "@/lib/date";
 
 function DashboardInner() {
-  const { profile, readinessScore, hydrated } = useProfile();
+  const { profile, readinessScore, hydrated, currentProcedure } = useProfile();
   const { isEmbed } = useViewMode();
   const [tasks, setTasks] = useState<Task[]>(todayTasks);
   const remaining = tasks.filter((t) => t.status !== "done").length;
+  const showOnboarding = hydrated && !profile.onboardingComplete;
 
   if (isEmbed) {
     return (
       <PageShell>
         <DashboardMobile />
+        {showOnboarding && <OnboardingFlow />}
       </PageShell>
     );
   }
@@ -96,9 +99,20 @@ function DashboardInner() {
                   </span>
                   <span className="text-on-surface"> Days</span>
                 </h2>
-                <p className="mt-2 text-xl font-medium text-on-surface-variant">
+                <p className="mt-2 text-xl font-medium text-on-surface-variant flex items-center gap-2">
+                  <span aria-hidden className="text-2xl">
+                    {currentProcedure.emoji}
+                  </span>
                   to your {profile.procedure}.
                 </p>
+                <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-bold">
+                  <span className="rounded-full glass-card px-3 py-1 text-on-surface-variant">
+                    {currentProcedure.hospitalStay}
+                  </span>
+                  <span className="rounded-full glass-card px-3 py-1 text-on-surface-variant">
+                    Recovery {currentProcedure.recoveryWindow}
+                  </span>
+                </div>
               </div>
               <div className="relative z-10 mt-8 flex flex-wrap gap-3">
                 <Link
@@ -308,6 +322,7 @@ function DashboardInner() {
           })}
         </StaggerGroup>
       </div>
+      {showOnboarding && <OnboardingFlow />}
     </PageShell>
   );
 }

@@ -5,6 +5,7 @@ export type Profile = {
   lastName: string;
   age: number;
   patientId: string;
+  procedureId: string;
   procedure: string;
   surgeon: string;
   surgeryDate: string; // ISO YYYY-MM-DD, e.g. "2026-06-24"
@@ -26,6 +27,7 @@ export type Profile = {
   readinessScore: number;
   medications: Medication[];
   avatar: string;
+  onboardingComplete: boolean;
 };
 
 export const defaultProfile: Profile = {
@@ -33,6 +35,7 @@ export const defaultProfile: Profile = {
   lastName: "Morgan",
   age: 47,
   patientId: "4920",
+  procedureId: "knee",
   procedure: "Knee Replacement",
   surgeon: "Dr. Sarah Chen",
   surgeryDate: "2026-06-24",
@@ -55,6 +58,7 @@ export const defaultProfile: Profile = {
   medications: [],
   avatar:
     "https://lh3.googleusercontent.com/aida-public/AB6AXuAR_KLNHPFHZhRxfEd_xk06F8G4yjfCYA1NWz5FwyO3QXPp-CIFN3udm_RTM9wB23aN4VfqQggqGAlgwk556QFLJSfwuck9zwzy3eFNO4VvJFdaSiqmENcUKjeya5-eFFn1G2vjVhgcR1FWZllNN8_7mSalTxmLPjUoGG34qZHx6DUZ9lb091g1k1SawvG9vVe5ILKhVePYS-crowqUUuuMEIdTPqFDoNaHJi59hczmrBw07SShKa2cplWrhADeC5g5T8NHuFGmH7w",
+  onboardingComplete: false,
 };
 
 // Back-compat: legacy default user object referenced by older imports.

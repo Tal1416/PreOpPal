@@ -1,11 +1,20 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { bagCategories, BagCategory } from "@/data/content";
+import { bagCategoriesFor } from "@/data/procedures";
+import { useProfile } from "@/lib/profile-context";
 
 export default function BagMobile() {
-  const [cats, setCats] = useState<BagCategory[]>(bagCategories);
+  const { profile, currentProcedure } = useProfile();
+  const [cats, setCats] = useState<BagCategory[]>(() =>
+    bagCategoriesFor(profile.procedureId, bagCategories)
+  );
+
+  useEffect(() => {
+    setCats(bagCategoriesFor(profile.procedureId, bagCategories));
+  }, [profile.procedureId]);
 
   const totals = useMemo(() => {
     const all = cats.flatMap((c) => c.items);
@@ -63,6 +72,10 @@ export default function BagMobile() {
             Pack with{" "}
             <span className="text-[#acedff]">confidence.</span>
           </h1>
+          <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/20 px-2.5 py-1 text-[10px] font-bold text-white/90">
+            <span aria-hidden>{currentProcedure.emoji}</span>
+            For your {currentProcedure.shortName}
+          </p>
           <div className="mt-4 flex items-center gap-3">
             <div className="flex-1 h-1.5 bg-white/20 rounded-full overflow-hidden">
               <motion.div

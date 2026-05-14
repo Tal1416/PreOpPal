@@ -9,6 +9,7 @@ import {
 } from "react";
 import { defaultProfile, Profile } from "@/data/user";
 import { medications as defaultMedications } from "@/data/content";
+import { getProcedure, type Procedure } from "@/data/procedures";
 import { daysUntilSurgery, isISODate, toISODate } from "@/lib/date";
 
 const STORAGE_KEY = "preoppal-profile-v1";
@@ -24,6 +25,13 @@ type Ctx = {
    * Bounded to 5–100 so the dashboard ring always looks meaningful.
    */
   readinessScore: number;
+  /**
+   * The selected procedure template. Always defined — falls back to the default
+   * procedure if `profile.procedureId` is unknown.
+   */
+  currentProcedure: Procedure;
+  setProcedure: (procedureId: string) => void;
+  completeOnboarding: () => void;
 };
 
 const ProfileCtx = createContext<Ctx | null>(null);
@@ -96,8 +104,21 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   const updateProfile = (patch: Partial<Profile>) =>
     setProfile((p) => ({ ...p, ...patch }));
 
+  const setProcedure = (procedureId: string) => {
+    const proc = getProcedure(procedureId);
+    setProfile((p) => ({
+      ...p,
+      procedureId: proc.id,
+      procedure: proc.name,
+    }));
+  };
+
+  const completeOnboarding = () =>
+    setProfile((p) => ({ ...p, onboardingComplete: true }));
+
   const resetProfile = () => setProfile(seedProfile);
 
+  const currentProcedure = getProcedure(profile.procedureId);
   const derivedProfile: Profile = {
     ...profile,
     daysToSurgery: daysUntilSurgery(profile.surgeryDate),
@@ -113,6 +134,9 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         setProfile,
         resetProfile,
         readinessScore,
+        currentProcedure,
+        setProcedure,
+        completeOnboarding,
       }}
     >
       {children}

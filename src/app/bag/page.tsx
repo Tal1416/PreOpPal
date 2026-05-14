@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import PageShell from "@/components/layout/PageShell";
 import GlassCard from "@/components/ui/GlassCard";
@@ -10,13 +10,22 @@ import ScrollReveal, {
 } from "@/components/ui/ScrollReveal";
 import BagMobile from "@/components/mobile/BagMobile";
 import { bagCategories } from "@/data/content";
+import { bagCategoriesFor } from "@/data/procedures";
+import { useProfile } from "@/lib/profile-context";
 import { useViewMode } from "@/lib/view-mode-context";
 
 type CategoryState = (typeof bagCategories)[number];
 
 export default function HospitalBag() {
   const { isEmbed } = useViewMode();
-  const [cats, setCats] = useState<CategoryState[]>(bagCategories);
+  const { profile, currentProcedure } = useProfile();
+  const [cats, setCats] = useState<CategoryState[]>(() =>
+    bagCategoriesFor(profile.procedureId, bagCategories)
+  );
+
+  useEffect(() => {
+    setCats(bagCategoriesFor(profile.procedureId, bagCategories));
+  }, [profile.procedureId]);
   const totals = useMemo(() => {
     const all = cats.flatMap((c) => c.items);
     return {
@@ -56,10 +65,16 @@ export default function HospitalBag() {
             Hospital Bag
           </p>
           <div className="flex flex-wrap items-end justify-between gap-6">
-            <h1 className="text-balance text-4xl md:text-6xl font-extrabold tracking-tight text-on-surface">
-              Pack with{" "}
-              <span className="gradient-text-static">confidence.</span>
-            </h1>
+            <div>
+              <h1 className="text-balance text-4xl md:text-6xl font-extrabold tracking-tight text-on-surface">
+                Pack with{" "}
+                <span className="gradient-text-static">confidence.</span>
+              </h1>
+              <p className="mt-3 inline-flex items-center gap-2 rounded-full glass-card px-3 py-1.5 text-xs font-bold text-on-surface-variant">
+                <span aria-hidden>{currentProcedure.emoji}</span>
+                Tailored for your {currentProcedure.shortName}
+              </p>
+            </div>
             <div className="rounded-2xl glass-card-strong px-6 py-4">
               <p className="text-xs uppercase tracking-widest text-on-surface-variant">
                 Packed

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Modal from "@/components/ui/Modal";
 import AvatarPicker from "@/components/ui/AvatarPicker";
+import ProcedurePicker from "@/components/ui/ProcedurePicker";
 import { useProfile } from "@/lib/profile-context";
 import type { Medication } from "@/data/content";
 
@@ -47,7 +48,8 @@ const emptyMedication: Omit<Medication, "id"> = {
 };
 
 export default function MeMobile() {
-  const { profile, updateProfile, resetProfile, readinessScore } = useProfile();
+  const { profile, updateProfile, resetProfile, readinessScore, setProcedure } =
+    useProfile();
   const [active, setActive] = useState<SectionId>("personal");
   const [saved, setSaved] = useState(false);
   const [medModalOpen, setMedModalOpen] = useState(false);
@@ -181,13 +183,13 @@ export default function MeMobile() {
       </div>
 
       {/* SECTION CONTENT */}
-      <AnimatePresence mode="wait">
+      <AnimatePresence initial={false} mode="popLayout">
         <motion.section
           key={active}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
           className="glass-card rounded-3xl p-5"
         >
           {active === "personal" && (
@@ -242,16 +244,14 @@ export default function MeMobile() {
 
           {active === "surgery" && (
             <div className="space-y-3">
-              <Field label="Procedure">
-                <input
-                  className={inputCls}
-                  value={profile.procedure}
-                  onChange={(e) =>
-                    updateProfile({ procedure: e.target.value })
-                  }
-                  placeholder="Knee Replacement"
+              <div>
+                <span className={labelCls}>Procedure</span>
+                <ProcedurePicker
+                  variant="compact"
+                  value={profile.procedureId}
+                  onChange={setProcedure}
                 />
-              </Field>
+              </div>
               <Field label="Surgeon">
                 <input
                   className={inputCls}
