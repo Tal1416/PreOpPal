@@ -182,13 +182,15 @@ function CareSupport() {
                         />
                       )}
                       <div
-                        className={`max-w-[75%] px-4 py-2.5 rounded-3xl ${
+                        className={`max-w-[75%] px-4 py-2.5 rounded-3xl shadow-[0_4px_12px_-4px_rgba(42,122,140,0.18)] ${
                           msg.from === "user"
-                            ? "bg-primary text-white rounded-br-md shadow-md"
-                            : "bg-white text-on-surface rounded-bl-md border border-white"
+                            ? "bg-primary text-white"
+                            : "bg-white text-on-surface border border-white/80"
                         }`}
                       >
-                        <p className="text-[15px] leading-snug">{msg.text}</p>
+                        <p className="text-[15px] leading-snug whitespace-pre-wrap break-words">
+                          {msg.text}
+                        </p>
                         <p
                           className={`mt-1 text-[10px] ${
                             msg.from === "user"
@@ -214,7 +216,7 @@ function CareSupport() {
                         alt=""
                         className="h-8 w-8 rounded-full object-cover ring-1 ring-white shrink-0 self-end"
                       />
-                      <div className="bg-white border border-white px-4 py-3 rounded-3xl rounded-bl-md flex items-center gap-1">
+                      <div className="bg-white border border-white/80 px-4 py-3 rounded-3xl flex items-center gap-1 shadow-[0_4px_12px_-4px_rgba(42,122,140,0.18)]">
                         {[0, 0.15, 0.3].map((d) => (
                           <motion.span
                             key={d}

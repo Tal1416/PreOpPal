@@ -220,10 +220,10 @@ export default function FAB() {
                     <div className={`max-w-[80%] flex flex-col gap-1.5 ${msg.from === "user" ? "items-end" : "items-start"}`}>
                       {(msg.text.trim() || !msg.actions?.length) && (
                         <div
-                          className={`px-3.5 py-2 rounded-2xl text-[14px] leading-snug whitespace-pre-wrap break-words ${
+                          className={`px-3.5 py-2 rounded-2xl text-[14px] leading-snug whitespace-pre-wrap break-words shadow-[0_3px_10px_-3px_rgba(42,122,140,0.18)] ${
                             msg.from === "user"
-                              ? "bg-primary text-white rounded-br-md"
-                              : "bg-white text-on-surface rounded-bl-md border border-white"
+                              ? "bg-primary text-white"
+                              : "bg-white text-on-surface border border-white/80"
                           }`}
                         >
                           {msg.text}
@@ -269,7 +269,7 @@ export default function FAB() {
                         smart_toy
                       </span>
                     </div>
-                    <div className="bg-white border border-white px-4 py-2.5 rounded-2xl rounded-bl-md flex items-center gap-1">
+                    <div className="bg-white border border-white/80 px-4 py-2.5 rounded-2xl flex items-center gap-1 shadow-[0_3px_10px_-3px_rgba(42,122,140,0.18)]">
                       {[0, 0.15, 0.3].map((d) => (
                         <motion.span
                           key={d}

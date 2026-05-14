@@ -355,10 +355,10 @@ export default function CareMobile() {
                         />
                       )}
                       <div
-                        className={`max-w-[78%] px-3.5 py-2 rounded-2xl ${
+                        className={`max-w-[78%] px-3.5 py-2 rounded-2xl shadow-[0_3px_10px_-3px_rgba(42,122,140,0.18)] ${
                           msg.from === "user"
-                            ? "bg-primary text-white rounded-br-md"
-                            : "bg-white text-on-surface rounded-bl-md border border-white"
+                            ? "bg-primary text-white"
+                            : "bg-white text-on-surface border border-white/80"
                         }`}
                       >
                         <p className="text-[14px] leading-snug whitespace-pre-wrap break-words">
@@ -389,7 +389,7 @@ export default function CareMobile() {
                         alt=""
                         className="h-7 w-7 rounded-full object-cover ring-1 ring-white shrink-0 self-end"
                       />
-                      <div className="bg-white border border-white px-4 py-2.5 rounded-2xl rounded-bl-md flex items-center gap-1">
+                      <div className="bg-white border border-white/80 px-4 py-2.5 rounded-2xl flex items-center gap-1 shadow-[0_3px_10px_-3px_rgba(42,122,140,0.18)]">
                         {[0, 0.15, 0.3].map((d) => (
                           <motion.span
                             key={d}
