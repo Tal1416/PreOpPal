@@ -11,7 +11,6 @@ import ViewModeToggle from "@/components/layout/ViewModeToggle";
 import ServiceWorkerRegister from "@/components/pwa/ServiceWorkerRegister";
 import InstallPrompt from "@/components/pwa/InstallPrompt";
 import VoiceOverlay from "@/components/ai/VoiceOverlay";
-import VoiceFAB from "@/components/ai/VoiceFAB";
 import PairedToast from "@/components/pairing/PairedToast";
 import { ProfileProvider } from "@/lib/profile-context";
 import { AuthProvider } from "@/lib/auth-context";
@@ -77,7 +76,6 @@ export default function Providers({
           <ScrollProgress />
           <ViewModeShell>{children}</ViewModeShell>
           <VoiceOverlay />
-          <VoiceFAB />
           <PairedToast />
           <ServiceWorkerRegister />
           <InstallPrompt />
