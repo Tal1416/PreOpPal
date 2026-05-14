@@ -151,6 +151,13 @@ export default function VoiceOverlay() {
     ai.setVoiceOverlay(false);
   }
 
+  function switchToTextChat() {
+    // Close the voice overlay and pop the text chat drawer so the user can
+    // type instead. Mic + TTS get hard-stopped by the overlay-close effect.
+    ai.setVoiceOverlay(false);
+    ai.setOpen(true);
+  }
+
   const phaseLabel: Record<Phase, string> = {
     idle: "Tap to talk",
     listening: "Listening…",
@@ -399,6 +406,25 @@ export default function VoiceOverlay() {
                 lock
               </span>
               Audio stays on your device. Pal hears the text, not the sound.
+            </div>
+
+            {/* Switch-to-text fallback so users always know the chat is one tap away. */}
+            <div className="mt-4 flex justify-center">
+              <button
+                type="button"
+                onClick={switchToTextChat}
+                className="inline-flex items-center gap-2 rounded-full glass-card-dark px-4 py-2 text-white/85 hover:text-white hover:bg-white/10 transition-colors"
+              >
+                <span className="material-symbols-outlined text-[16px]">
+                  chat_bubble
+                </span>
+                <span className="text-[12px] font-extrabold tracking-tight">
+                  Prefer typing? Open Ask Pal chat
+                </span>
+                <span className="material-symbols-outlined text-[14px]">
+                  arrow_forward
+                </span>
+              </button>
             </div>
           </div>
         </motion.div>
