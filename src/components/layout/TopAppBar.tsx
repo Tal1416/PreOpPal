@@ -97,7 +97,7 @@ export default function TopAppBar() {
 
       <div className="flex items-center gap-3">
         <div className="hidden lg:flex">
-          <PairButton variant="inline" />
+          <PairButton />
         </div>
         <ViewModeToggle inline />
         <button
