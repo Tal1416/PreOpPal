@@ -3,14 +3,15 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { careTeam, chatSeed, ChatMessage } from "@/data/content";
+import { streamCareReply } from "@/lib/care-chat";
 import { useProfile } from "@/lib/profile-context";
 
-const REPLIES = [
-  "Of course — let's walk through that together.",
-  "Great question. The short answer is yes, that's expected.",
-  "I'll add it to your timeline so it's there when you need it.",
-  "That's normal. Try the breathing orb on your dashboard for two minutes.",
-];
+function nowTime() {
+  return new Date().toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
 
 const QUICK_REPLIES = [
   "Am I fasting right?",
@@ -46,36 +47,44 @@ export default function CareMobile() {
     node.scrollTop = node.scrollHeight;
   }, [messages, typing, chatOpen]);
 
-  function send(text?: string) {
+  async function send(text?: string) {
     const value = (text ?? input).trim();
-    if (!value) return;
-    const now = new Date();
-    const time = now.toLocaleTimeString([], {
-      hour: "numeric",
-      minute: "2-digit",
-    });
+    if (!value || typing) return;
     const userMsg: ChatMessage = {
       id: String(Date.now()),
       from: "user",
       text: value,
-      time,
+      time: nowTime(),
     };
-    setMessages((m) => [...m, userMsg]);
+    const history = [...messages, userMsg];
+    setMessages(history);
     setInput("");
     setTyping(true);
-    setTimeout(() => {
-      const reply = REPLIES[Math.floor(Math.random() * REPLIES.length)];
-      setMessages((m) => [
-        ...m,
-        {
-          id: String(Date.now() + 1),
-          from: "nurse",
-          text: reply,
-          time,
-        },
-      ]);
-      setTyping(false);
-    }, 1300 + Math.random() * 600);
+
+    const replyId = `n-${Date.now()}`;
+    let started = false;
+    const coordinator = team[2];
+
+    await streamCareReply({
+      history,
+      profile,
+      member: { name: coordinator.name, role: coordinator.role },
+      onText: (txt) => {
+        if (!started) {
+          started = true;
+          setTyping(false);
+          setMessages((m) => [
+            ...m,
+            { id: replyId, from: "nurse", text: txt, time: nowTime() },
+          ]);
+        } else {
+          setMessages((m) =>
+            m.map((msg) => (msg.id === replyId ? { ...msg, text: txt } : msg)),
+          );
+        }
+      },
+    });
+    setTyping(false);
   }
 
   return (
