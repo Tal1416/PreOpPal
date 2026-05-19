@@ -8,7 +8,7 @@ import PageShell from "@/components/layout/PageShell";
 import GlassCard from "@/components/ui/GlassCard";
 import MagneticButton from "@/components/ui/MagneticButton";
 import LoginMobile from "@/components/mobile/LoginMobile";
-import { DEMO_EMAIL, useAuth } from "@/lib/auth-context";
+import { DEMO_EMAIL, DEMO_PASSWORD, useAuth } from "@/lib/auth-context";
 import { useViewMode } from "@/lib/view-mode-context";
 
 type Mode = "login" | "signup";
@@ -17,7 +17,7 @@ function LoginInner() {
   const router = useRouter();
   const params = useSearchParams();
   const next = params.get("next") || "/me";
-  const { signIn, isAuthenticated, hydrated } = useAuth();
+  const { signIn, signUp, isAuthenticated, hydrated } = useAuth();
   const { isEmbed } = useViewMode();
 
   const [mode, setMode] = useState<Mode>("login");
@@ -33,24 +33,28 @@ function LoginInner() {
     }
   }, [hydrated, isAuthenticated, next, router]);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
 
     if (mode === "signup") {
       if (!email.trim()) return setError("Enter an email.");
-      if (password.length < 4)
-        return setError("Password must be at least 4 characters.");
+      if (password.length < 6)
+        return setError("Password must be at least 6 characters.");
       if (password !== confirm) return setError("Passwords don't match.");
-      // No backend yet — point the user to the demo credentials.
-      setError(
-        `Sign-up isn't connected yet. Use the demo account: ${DEMO_EMAIL} / 1234`,
-      );
+      setSubmitting(true);
+      const result = await signUp(email, password);
+      setSubmitting(false);
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      router.replace(next);
       return;
     }
 
     setSubmitting(true);
-    const result = signIn(email, password);
+    const result = await signIn(email, password);
     setSubmitting(false);
     if (!result.ok) {
       setError(result.error);
@@ -61,7 +65,7 @@ function LoginInner() {
 
   function fillDemo() {
     setEmail(DEMO_EMAIL);
-    setPassword("1234");
+    setPassword(DEMO_PASSWORD);
     setError(null);
   }
 
@@ -240,7 +244,10 @@ function LoginInner() {
               <p className="text-xs text-on-surface-variant leading-relaxed">
                 <span className="font-mono text-on-surface">{DEMO_EMAIL}</span>
                 <br />
-                Password: <span className="font-mono text-on-surface">1234</span>
+                Password:{" "}
+                <span className="font-mono text-on-surface">
+                  {DEMO_PASSWORD}
+                </span>
               </p>
               <button
                 type="button"

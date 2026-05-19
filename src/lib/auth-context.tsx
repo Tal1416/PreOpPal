@@ -6,88 +6,179 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
+  useRef,
   useState,
 } from "react";
+import { getBrowserClient } from "@/lib/supabase/browser";
+import { clearPalHistory, hydratePalHistory } from "@/components/ai/ai-store";
 
-const STORAGE_KEY = "preoppal-auth-v1";
+// Hint shown on the login screen so demo viewers can click "Fill demo
+// credentials" and log straight in as the seeded account. Provision this
+// user via `npm run db:seed` after applying the migration.
+export const DEMO_EMAIL = "demo@preoppal.app";
+export const DEMO_PASSWORD = "preop-demo";
 
-// Demo-only hardcoded credentials. No backend yet; this gates client-side
-// access to the personalized views until real auth is wired up.
-export const DEMO_EMAIL = "talyar1@mail.tau.ac.il";
-const DEMO_PASSWORD = "1234";
+export type AuthUser = { id: string; email: string };
 
-type Session = {
+/** Back-compat shape: the rest of the codebase reads `session.email` and
+ *  `session.signedInAt`. We derive it from the Supabase user. */
+export type Session = {
   email: string;
-  signedInAt: string; // ISO timestamp
+  signedInAt: string;
 };
 
+type Result = { ok: true } | { ok: false; error: string };
+
 type Ctx = {
+  user: AuthUser | null;
+  /** Derived back-compat session shape. */
   session: Session | null;
   hydrated: boolean;
   isAuthenticated: boolean;
-  signIn: (
-    email: string,
-    password: string,
-  ) => { ok: true } | { ok: false; error: string };
-  signOut: () => void;
+  signIn: (email: string, password: string) => Promise<Result>;
+  signUp: (email: string, password: string) => Promise<Result>;
+  signOut: () => Promise<void>;
 };
 
 const AuthCtx = createContext<Ctx | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  // Track signed-in-at locally — Supabase doesn't expose it directly. Falls
+  // back to "now" on initial hydration if we discover an existing session.
+  const signedInAtRef = useRef<string | null>(null);
 
+  // Initial session check + subscribe to auth changes.
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as Session;
-        if (parsed?.email) setSession(parsed);
+    let cancelled = false;
+    const supabase = getBrowserClient();
+
+    (async () => {
+      try {
+        const res = await fetch("/api/auth/session", { cache: "no-store" });
+        if (cancelled) return;
+        if (res.ok) {
+          const json = (await res.json()) as { user: AuthUser | null };
+          if (json.user) {
+            setUser(json.user);
+            signedInAtRef.current = new Date().toISOString();
+            void hydratePalHistory();
+          }
+        }
+      } catch {
+        // network blip — leave user null
+      } finally {
+        if (!cancelled) setHydrated(true);
       }
-    } catch {
-      // ignore corrupt storage
-    }
-    setHydrated(true);
-  }, []);
+    })();
 
-  const signIn = useCallback((email: string, password: string) => {
-    const normalized = email.trim().toLowerCase();
-    if (normalized !== DEMO_EMAIL.toLowerCase()) {
-      return { ok: false as const, error: "Email not recognized." };
-    }
-    if (password !== DEMO_PASSWORD) {
-      return { ok: false as const, error: "Incorrect password." };
-    }
-    const next: Session = {
-      email: DEMO_EMAIL,
-      signedInAt: new Date().toISOString(),
+    const { data: sub } = supabase.auth.onAuthStateChange((event, sess) => {
+      if (cancelled) return;
+      if (event === "SIGNED_OUT" || !sess?.user) {
+        setUser(null);
+        signedInAtRef.current = null;
+      } else {
+        setUser({ id: sess.user.id, email: sess.user.email ?? "" });
+        signedInAtRef.current ??= new Date().toISOString();
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      sub.subscription.unsubscribe();
     };
-    setSession(next);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    } catch {
-      // ignore quota/permission errors
-    }
-    return { ok: true as const };
   }, []);
 
-  const signOut = useCallback(() => {
-    setSession(null);
+  const signIn = useCallback(
+    async (email: string, password: string): Promise<Result> => {
+      try {
+        const res = await fetch("/api/auth/signin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+        const json = (await res.json()) as
+          | { user: AuthUser | null }
+          | { error: string };
+        if (!res.ok || "error" in json) {
+          return {
+            ok: false,
+            error: "error" in json ? json.error : "Sign-in failed.",
+          };
+        }
+        if (json.user) {
+          setUser(json.user);
+          signedInAtRef.current = new Date().toISOString();
+          void hydratePalHistory();
+        }
+        return { ok: true };
+      } catch (e) {
+        return { ok: false, error: (e as Error).message ?? "Network error." };
+      }
+    },
+    [],
+  );
+
+  const signUp = useCallback(
+    async (email: string, password: string): Promise<Result> => {
+      try {
+        const res = await fetch("/api/auth/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+        const json = (await res.json()) as
+          | { user: AuthUser | null }
+          | { error: string };
+        if (!res.ok || "error" in json) {
+          return {
+            ok: false,
+            error: "error" in json ? json.error : "Sign-up failed.",
+          };
+        }
+        if (json.user) {
+          setUser(json.user);
+          signedInAtRef.current = new Date().toISOString();
+          void hydratePalHistory();
+        }
+        return { ok: true };
+      } catch (e) {
+        return { ok: false, error: (e as Error).message ?? "Network error." };
+      }
+    },
+    [],
+  );
+
+  const signOut = useCallback(async () => {
     try {
-      localStorage.removeItem(STORAGE_KEY);
+      await fetch("/api/auth/signout", { method: "POST" });
     } catch {
-      // ignore
+      // ignore — onAuthStateChange will still flip state if cookies are gone
     }
+    setUser(null);
+    signedInAtRef.current = null;
+    clearPalHistory();
   }, []);
+
+  const session: Session | null = useMemo(() => {
+    if (!user) return null;
+    return {
+      email: user.email,
+      signedInAt: signedInAtRef.current ?? new Date().toISOString(),
+    };
+  }, [user]);
 
   return (
     <AuthCtx.Provider
       value={{
+        user,
         session,
         hydrated,
-        isAuthenticated: !!session,
+        isAuthenticated: !!user,
         signIn,
+        signUp,
         signOut,
       }}
     >

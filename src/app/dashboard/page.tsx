@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import AuthGuard from "@/components/auth/AuthGuard";
@@ -21,16 +21,24 @@ import { tasksFor } from "@/data/procedure-customizations";
 import { useProfile } from "@/lib/profile-context";
 import { useViewMode } from "@/lib/view-mode-context";
 import { formatSurgeryDate } from "@/lib/date";
+import { useChecklist } from "@/lib/useChecklist";
 
 function DashboardInner() {
   const { profile, readinessScore, hydrated, currentProcedure } = useProfile();
   const { isEmbed } = useViewMode();
-  const [tasks, setTasks] = useState<Task[]>(() => tasksFor(profile.procedureId));
-  // Re-seed tasks when the user changes procedures on /me. Different surgery,
-  // different prep list — local check-offs reset (which is the honest behavior).
-  useEffect(() => {
-    setTasks(tasksFor(profile.procedureId));
-  }, [profile.procedureId]);
+  const { isChecked, setChecked } = useChecklist("task");
+
+  // Catalog comes from the procedure template; "done" state comes from the
+  // checklist. Critical badges stay sourced from the catalog. Switching
+  // procedures swaps the catalog but the user's done IDs persist (harmless
+  // if they don't overlap with the new list).
+  const tasks = useMemo<Task[]>(
+    () =>
+      tasksFor(profile.procedureId).map((t) =>
+        isChecked(t.id) ? { ...t, status: "done" } : t,
+      ),
+    [profile.procedureId, isChecked],
+  );
   const remaining = tasks.filter((t) => t.status !== "done").length;
   const showOnboarding = hydrated && !profile.onboardingComplete;
 
@@ -44,13 +52,7 @@ function DashboardInner() {
   }
 
   function toggle(id: string) {
-    setTasks((cur) =>
-      cur.map((t) =>
-        t.id === id
-          ? { ...t, status: t.status === "done" ? "pending" : "done" }
-          : t
-      )
-    );
+    setChecked(id, !isChecked(id));
   }
 
   const greetingName = profile.firstName?.trim() || "friend";

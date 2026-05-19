@@ -1,20 +1,23 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { bagCategories, BagCategory } from "@/data/content";
 import { bagCategoriesFor } from "@/data/procedures";
 import { useProfile } from "@/lib/profile-context";
+import { useChecklist } from "@/lib/useChecklist";
 
 export default function BagMobile() {
   const { profile, currentProcedure } = useProfile();
-  const [cats, setCats] = useState<BagCategory[]>(() =>
-    bagCategoriesFor(profile.procedureId, bagCategories)
-  );
+  const { isChecked, toggle: toggleItem } = useChecklist("bag");
 
-  useEffect(() => {
-    setCats(bagCategoriesFor(profile.procedureId, bagCategories));
-  }, [profile.procedureId]);
+  const cats = useMemo<BagCategory[]>(() => {
+    const base = bagCategoriesFor(profile.procedureId, bagCategories);
+    return base.map((c) => ({
+      ...c,
+      items: c.items.map((i) => ({ ...i, checked: isChecked(i.id) })),
+    }));
+  }, [profile.procedureId, isChecked]);
 
   const totals = useMemo(() => {
     const all = cats.flatMap((c) => c.items);
@@ -24,19 +27,8 @@ export default function BagMobile() {
     };
   }, [cats]);
 
-  function toggle(catId: string, itemId: string) {
-    setCats((cur) =>
-      cur.map((c) =>
-        c.id === catId
-          ? {
-              ...c,
-              items: c.items.map((i) =>
-                i.id === itemId ? { ...i, checked: !i.checked } : i
-              ),
-            }
-          : c
-      )
-    );
+  function toggle(_catId: string, itemId: string) {
+    toggleItem(itemId);
   }
 
   const overallPct = (totals.done / totals.total) * 100;

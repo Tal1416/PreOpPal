@@ -5,10 +5,6 @@ import {
   type PairPayload,
 } from "@/lib/pairing/store";
 
-/**
- * In-memory store survives only within a single Node process — keep us off the
- * edge runtime so this route shares state with /api/pair/status.
- */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -23,8 +19,15 @@ export async function POST(req: Request) {
   if (!body || typeof body !== "object" || !body.profile) {
     return NextResponse.json({ error: "Missing payload" }, { status: 400 });
   }
-  const { code, expiresAt } = createPair(body);
-  return NextResponse.json({ code, expiresAt }, { status: 201 });
+  try {
+    const { code, expiresAt } = await createPair(body);
+    return NextResponse.json({ code, expiresAt }, { status: 201 });
+  } catch (err) {
+    return NextResponse.json(
+      { error: (err as Error).message ?? "Failed to create pair code" },
+      { status: 500 },
+    );
+  }
 }
 
 /** Phone consumes a code (one-shot). */
@@ -34,7 +37,7 @@ export async function GET(req: Request) {
   if (!code) {
     return NextResponse.json({ error: "Missing code" }, { status: 400 });
   }
-  const payload = consumePair(code);
+  const payload = await consumePair(code);
   if (!payload) {
     return NextResponse.json(
       { error: "Code not found or expired" },

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Modal from "@/components/ui/Modal";
 import { Phase, PhaseDetails, personalize } from "@/data/content";
 import { useProfile } from "@/lib/profile-context";
+import { useChecklist } from "@/lib/useChecklist";
 
 const STATUS_THEME = {
   stop: {
@@ -38,15 +38,7 @@ export default function PhaseDetailModal({
   details,
 }: Props) {
   const { profile } = useProfile();
-  const [checked, setChecked] = useState<Record<string, boolean>>({});
-
-  useEffect(() => {
-    if (phase && details?.checklist) {
-      const initial: Record<string, boolean> = {};
-      for (const item of details.checklist) initial[item.id] = item.checked;
-      setChecked(initial);
-    }
-  }, [phase, details]);
+  const { isChecked, setChecked } = useChecklist("phase");
 
   if (!phase) return null;
 
@@ -69,7 +61,7 @@ export default function PhaseDetailModal({
   const checklist = details?.checklist ?? [];
   const tips = details?.tips ?? [];
 
-  const checkedCount = checklist.filter((c) => checked[c.id]).length;
+  const checkedCount = checklist.filter((c) => isChecked(c.id)).length;
 
   return (
     <Modal
@@ -183,26 +175,21 @@ export default function PhaseDetailModal({
             </div>
             <ul className="space-y-1.5">
               {checklist.map((item) => {
-                const isChecked = !!checked[item.id];
+                const itemChecked = isChecked(item.id);
                 return (
                   <li key={item.id}>
                     <button
-                      onClick={() =>
-                        setChecked((prev) => ({
-                          ...prev,
-                          [item.id]: !prev[item.id],
-                        }))
-                      }
+                      onClick={() => setChecked(item.id, !itemChecked)}
                       className="w-full flex items-center gap-3 p-3 rounded-2xl bg-white/50 hover:bg-white text-left transition-colors"
                     >
                       <span
                         className={`h-5 w-5 rounded-md flex items-center justify-center shrink-0 transition-colors ${
-                          isChecked
+                          itemChecked
                             ? "bg-primary text-white"
                             : "border-2 border-on-surface-variant/40"
                         }`}
                       >
-                        {isChecked && (
+                        {itemChecked && (
                           <span className="material-symbols-outlined text-[14px]">
                             check
                           </span>
@@ -210,7 +197,7 @@ export default function PhaseDetailModal({
                       </span>
                       <span
                         className={`text-sm ${
-                          isChecked
+                          itemChecked
                             ? "line-through text-on-surface-variant"
                             : "text-on-surface"
                         }`}
