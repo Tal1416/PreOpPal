@@ -104,4 +104,89 @@
   .noise {
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
   }
+
+  /* Limit paint scope of glass surfaces so scroll doesn't re-blur the entire page. */
+  .glass-card,
+  .glass-card-strong,
+  .glass-card-dark {
+    contain: paint;
+  }
+
+  /* Breathing orb — CSS keyframes replace framer-motion infinite loops.
+     Runs on the compositor; much cheaper than JS-driven animation. */
+  @keyframes breathe-aura {
+    0%,
+    100% {
+      transform: scale(1);
+      opacity: 0.4;
+    }
+    50% {
+      transform: scale(1.6);
+      opacity: 0.05;
+    }
+  }
+  @keyframes breathe-core {
+    0%,
+    100% {
+      transform: scale(0.92);
+    }
+    50% {
+      transform: scale(1.08);
+    }
+  }
+  .breathe-aura-anim {
+    animation: breathe-aura 8s ease-in-out infinite;
+    will-change: transform, opacity;
+  }
+  .breathe-core-anim {
+    animation: breathe-core 8s ease-in-out infinite;
+    will-change: transform;
+  }
+  .is-paused {
+    animation-play-state: paused !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Performance: honor `prefers-reduced-motion` and cheapen glass on mobile.
+   The `[data-reduce-effects]` attribute is toggled by `useReduceEffects()`
+   when the device is a touch phone OR the user prefers reduced motion.
+   --------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .gradient-text {
+    animation: none;
+    background-size: 100% 100%;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Phones / coarse pointers: drop backdrop-filter cost dramatically.
+   A blur of 20–28px is the #1 mobile-FPS killer on iOS Safari while scrolling.
+   We bump background opacity so the cards still read as "frosted glass". */
+html[data-reduce-effects] .glass-card {
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(8px) saturate(120%);
+  -webkit-backdrop-filter: blur(8px) saturate(120%);
+}
+html[data-reduce-effects] .glass-card-strong {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px) saturate(130%);
+  -webkit-backdrop-filter: blur(10px) saturate(130%);
+}
+html[data-reduce-effects] .glass-card-dark {
+  background: rgba(13, 30, 33, 0.78);
+  backdrop-filter: blur(10px) saturate(120%);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
+}
+html[data-reduce-effects] .gradient-text {
+  animation: none;
+  background-size: 100% 100%;
 }

@@ -6,6 +6,7 @@ import { useAI, SUGGESTIONS } from "./ai-store";
 import { usePalExecutor } from "./use-pal-executor";
 import { useAuth } from "@/lib/auth-context";
 import { useProfile } from "@/lib/profile-context";
+import { useReduceEffects } from "@/lib/use-reduce-effects";
 
 export default function AICompanionCard() {
   const ai = useAI();
@@ -13,6 +14,7 @@ export default function AICompanionCard() {
   const { isAuthenticated } = useAuth();
   const executor = usePalExecutor();
   const [input, setInput] = useState("");
+  const reduce = useReduceEffects();
 
   function ask(text: string) {
     if (!text.trim()) return;
@@ -36,27 +38,50 @@ export default function AICompanionCard() {
           "linear-gradient(135deg, #006172 0%, #2a7a8c 45%, #0a6879 100%)",
       }}
     >
-      {/* animated orbs in background */}
-      <motion.div
-        aria-hidden
-        className="absolute -top-20 -right-20 h-80 w-80 rounded-full"
-        style={{
-          background:
-            "radial-gradient(circle, rgba(136,209,229,0.45), transparent 70%)",
-        }}
-        animate={{ scale: [1, 1.18, 1], rotate: [0, 30, 0] }}
-        transition={{ duration: 16, repeat: Infinity }}
-      />
-      <motion.div
-        aria-hidden
-        className="absolute -bottom-32 -left-20 h-96 w-96 rounded-full"
-        style={{
-          background:
-            "radial-gradient(circle, rgba(176,236,254,0.35), transparent 70%)",
-        }}
-        animate={{ scale: [1, 1.1, 0.95, 1], rotate: [0, -25, 0] }}
-        transition={{ duration: 22, repeat: Infinity }}
-      />
+      {/* animated orbs in background — static on mobile/reduce-motion */}
+      {reduce ? (
+        <>
+          <div
+            aria-hidden
+            className="absolute -top-20 -right-20 h-80 w-80 rounded-full"
+            style={{
+              background:
+                "radial-gradient(circle, rgba(136,209,229,0.45), transparent 70%)",
+            }}
+          />
+          <div
+            aria-hidden
+            className="absolute -bottom-32 -left-20 h-96 w-96 rounded-full"
+            style={{
+              background:
+                "radial-gradient(circle, rgba(176,236,254,0.35), transparent 70%)",
+            }}
+          />
+        </>
+      ) : (
+        <>
+          <motion.div
+            aria-hidden
+            className="absolute -top-20 -right-20 h-80 w-80 rounded-full"
+            style={{
+              background:
+                "radial-gradient(circle, rgba(136,209,229,0.45), transparent 70%)",
+            }}
+            animate={{ scale: [1, 1.18, 1], rotate: [0, 30, 0] }}
+            transition={{ duration: 16, repeat: Infinity }}
+          />
+          <motion.div
+            aria-hidden
+            className="absolute -bottom-32 -left-20 h-96 w-96 rounded-full"
+            style={{
+              background:
+                "radial-gradient(circle, rgba(176,236,254,0.35), transparent 70%)",
+            }}
+            animate={{ scale: [1, 1.1, 0.95, 1], rotate: [0, -25, 0] }}
+            transition={{ duration: 22, repeat: Infinity }}
+          />
+        </>
+      )}
       {/* noise overlay */}
       <div
         aria-hidden
@@ -67,27 +92,39 @@ export default function AICompanionCard() {
         {/* Pal avatar */}
         <div className="lg:col-span-4 flex items-center justify-center">
           <div className="relative">
-            <motion.span
-              aria-hidden
-              className="absolute inset-0 rounded-full bg-white/20"
-              animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
-              transition={{ duration: 3, repeat: Infinity }}
-            />
-            <motion.span
-              aria-hidden
-              className="absolute inset-0 rounded-full bg-white/15"
-              animate={{ scale: [1, 1.8, 1], opacity: [0.4, 0, 0.4] }}
-              transition={{ duration: 4, repeat: Infinity, delay: 0.6 }}
-            />
+            {!reduce && (
+              <>
+                <motion.span
+                  aria-hidden
+                  className="absolute inset-0 rounded-full bg-white/20"
+                  animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
+                  transition={{ duration: 3, repeat: Infinity }}
+                />
+                <motion.span
+                  aria-hidden
+                  className="absolute inset-0 rounded-full bg-white/15"
+                  animate={{ scale: [1, 1.8, 1], opacity: [0.4, 0, 0.4] }}
+                  transition={{ duration: 4, repeat: Infinity, delay: 0.6 }}
+                />
+              </>
+            )}
             <motion.div
-              animate={{ y: [0, -8, 0] }}
-              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+              animate={reduce ? undefined : { y: [0, -8, 0] }}
+              transition={
+                reduce
+                  ? undefined
+                  : { duration: 5, repeat: Infinity, ease: "easeInOut" }
+              }
               className="relative h-44 w-44 md:h-52 md:w-52 rounded-full bg-gradient-to-br from-[#acedff] via-[#88d1e5] to-white flex items-center justify-center shadow-[0_30px_60px_-10px_rgba(0,0,0,0.45)]"
             >
               <span className="material-symbols-outlined text-primary text-7xl md:text-8xl">
                 smart_toy
               </span>
-              <span className="absolute bottom-2 right-3 h-5 w-5 rounded-full bg-green-400 ring-4 ring-white animate-pulse-teal" />
+              <span
+                className={`absolute bottom-2 right-3 h-5 w-5 rounded-full bg-green-400 ring-4 ring-white ${
+                  reduce ? "" : "animate-pulse-teal"
+                }`}
+              />
             </motion.div>
           </div>
         </div>
@@ -170,12 +207,14 @@ export default function AICompanionCard() {
             >
               <div className="flex items-center gap-2 mb-2">
                 <span className="relative h-8 w-8 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center">
-                  <motion.span
-                    aria-hidden
-                    className="absolute inset-0 rounded-xl border border-[#7CFFA7]/60"
-                    animate={{ scale: [1, 1.35, 1], opacity: [0.7, 0, 0.7] }}
-                    transition={{ duration: 2.2, repeat: Infinity }}
-                  />
+                  {!reduce && (
+                    <motion.span
+                      aria-hidden
+                      className="absolute inset-0 rounded-xl border border-[#7CFFA7]/60"
+                      animate={{ scale: [1, 1.35, 1], opacity: [0.7, 0, 0.7] }}
+                      transition={{ duration: 2.2, repeat: Infinity }}
+                    />
+                  )}
                   <span className="material-symbols-outlined text-[18px] text-[#acedff]">
                     graphic_eq
                   </span>

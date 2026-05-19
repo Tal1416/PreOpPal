@@ -7,6 +7,7 @@ import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import AvatarPicker from "@/components/ui/AvatarPicker";
 import { useProfile } from "@/lib/profile-context";
 import { todayTasks } from "@/data/content";
+import { useReduceEffects } from "@/lib/use-reduce-effects";
 
 const QUICK_LINKS = [
   { to: "/dashboard", icon: "dashboard", label: "Dashboard" },
@@ -18,6 +19,7 @@ const QUICK_LINKS = [
 export default function LandingMobile() {
   const { profile, updateProfile, readinessScore, hydrated } = useProfile();
   const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
+  const reduce = useReduceEffects();
   const name = profile.firstName?.trim() || "friend";
   const daysLeft = Math.max(0, profile.daysToSurgery);
   const ready = hydrated ? readinessScore : profile.readinessScore;
@@ -45,16 +47,27 @@ export default function LandingMobile() {
             "linear-gradient(135deg, #006172 0%, #2a7a8c 50%, #0a6879 100%)",
         }}
       >
-        <motion.span
-          aria-hidden
-          className="absolute -top-16 -right-12 h-56 w-56 rounded-full"
-          style={{
-            background:
-              "radial-gradient(circle, rgba(176,236,254,0.4), transparent 70%)",
-          }}
-          animate={{ scale: [1, 1.15, 1] }}
-          transition={{ duration: 12, repeat: Infinity }}
-        />
+        {reduce ? (
+          <span
+            aria-hidden
+            className="absolute -top-16 -right-12 h-56 w-56 rounded-full"
+            style={{
+              background:
+                "radial-gradient(circle, rgba(176,236,254,0.4), transparent 70%)",
+            }}
+          />
+        ) : (
+          <motion.span
+            aria-hidden
+            className="absolute -top-16 -right-12 h-56 w-56 rounded-full"
+            style={{
+              background:
+                "radial-gradient(circle, rgba(176,236,254,0.4), transparent 70%)",
+            }}
+            animate={{ scale: [1, 1.15, 1] }}
+            transition={{ duration: 12, repeat: Infinity }}
+          />
+        )}
         <div className="relative px-6 pt-7 pb-8">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2.5">
@@ -185,20 +198,35 @@ export default function LandingMobile() {
             "linear-gradient(135deg, #2a7a8c 0%, #006172 100%)",
         }}
       >
-        <motion.span
-          aria-hidden
-          className="absolute -bottom-16 -left-12 h-56 w-56 rounded-full"
-          style={{
-            background:
-              "radial-gradient(circle, rgba(136,209,229,0.35), transparent 70%)",
-          }}
-          animate={{ scale: [1, 1.12, 1] }}
-          transition={{ duration: 14, repeat: Infinity }}
-        />
+        {reduce ? (
+          <span
+            aria-hidden
+            className="absolute -bottom-16 -left-12 h-56 w-56 rounded-full"
+            style={{
+              background:
+                "radial-gradient(circle, rgba(136,209,229,0.35), transparent 70%)",
+            }}
+          />
+        ) : (
+          <motion.span
+            aria-hidden
+            className="absolute -bottom-16 -left-12 h-56 w-56 rounded-full"
+            style={{
+              background:
+                "radial-gradient(circle, rgba(136,209,229,0.35), transparent 70%)",
+            }}
+            animate={{ scale: [1, 1.12, 1] }}
+            transition={{ duration: 14, repeat: Infinity }}
+          />
+        )}
         <div className="relative px-5 py-5 flex items-center gap-4">
           <motion.div
-            animate={{ y: [0, -4, 0] }}
-            transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+            animate={reduce ? undefined : { y: [0, -4, 0] }}
+            transition={
+              reduce
+                ? undefined
+                : { duration: 3.5, repeat: Infinity, ease: "easeInOut" }
+            }
             className="relative h-16 w-16 shrink-0 rounded-full bg-gradient-to-br from-[#acedff] to-white flex items-center justify-center shadow-md"
           >
             <span className="material-symbols-outlined text-primary text-3xl">

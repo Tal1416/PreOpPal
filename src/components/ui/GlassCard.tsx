@@ -7,6 +7,7 @@ import {
   useSpring,
 } from "framer-motion";
 import { ReactNode, useRef } from "react";
+import { useReduceEffects } from "@/lib/use-reduce-effects";
 
 type Props = {
   children: ReactNode;
@@ -19,6 +20,9 @@ type Props = {
 /**
  * Glassmorphism card. Optional 3D tilt that follows the cursor and an
  * optional radial-glow spotlight that tracks the mouse position.
+ *
+ * On touch / reduce-motion devices, all interactive effects are stripped:
+ * no mouse listeners, no springs, no preserve-3d, no glow overlay.
  */
 export default function GlassCard({
   children,
@@ -27,6 +31,60 @@ export default function GlassCard({
   glow = true,
   as = "div",
 }: Props) {
+  const reduce = useReduceEffects();
+
+  if (reduce) {
+    return (
+      <StaticGlassCard as={as} className={className}>
+        {children}
+      </StaticGlassCard>
+    );
+  }
+
+  return (
+    <InteractiveGlassCard
+      as={as}
+      className={className}
+      tilt={tilt}
+      glow={glow}
+    >
+      {children}
+    </InteractiveGlassCard>
+  );
+}
+
+function StaticGlassCard({
+  children,
+  className,
+  as,
+}: {
+  children: ReactNode;
+  className: string;
+  as: "div" | "section" | "article";
+}) {
+  const Tag = as;
+  return (
+    <Tag
+      className={`glass-card ambient-shadow relative overflow-hidden rounded-3xl ${className}`}
+    >
+      <div className="relative z-10 h-full">{children}</div>
+    </Tag>
+  );
+}
+
+function InteractiveGlassCard({
+  children,
+  className,
+  tilt,
+  glow,
+  as,
+}: {
+  children: ReactNode;
+  className: string;
+  tilt: boolean;
+  glow: boolean;
+  as: "div" | "section" | "article";
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const mouseX = useMotionValue(0.5);
   const mouseY = useMotionValue(0.5);

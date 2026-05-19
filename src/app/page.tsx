@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
+import dynamic from "next/dynamic";
 import PageShell from "@/components/layout/PageShell";
 import LandingNav from "@/components/layout/LandingNav";
 import GlassCard from "@/components/ui/GlassCard";
@@ -14,13 +15,29 @@ import ScrollReveal, {
   StaggerItem,
 } from "@/components/ui/ScrollReveal";
 import AnimatedNumber from "@/components/ui/AnimatedNumber";
-import AICompanionCard from "@/components/ai/AICompanionCard";
 import LandingMobile from "@/components/landing/LandingMobile";
 import { features } from "@/data/content";
 import { useViewMode } from "@/lib/view-mode-context";
+import { useReduceEffects } from "@/lib/use-reduce-effects";
+
+// AICompanionCard pulls in the AI store, executor, profile context, and
+// suggestions — none of which are needed for first paint of the hero.
+// Defer it so we ship a smaller initial JS bundle to mobile.
+const AICompanionCard = dynamic(
+  () => import("@/components/ai/AICompanionCard"),
+  {
+    loading: () => (
+      <div
+        aria-hidden
+        className="rounded-[32px] min-h-[480px] bg-primary/5"
+      />
+    ),
+  }
+);
 
 export default function Landing() {
   const { isEmbed } = useViewMode();
+  const reduce = useReduceEffects();
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -29,6 +46,9 @@ export default function Landing() {
   const heroY = useTransform(scrollYProgress, [0, 1], [0, 200]);
   const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
   const heroScale = useTransform(scrollYProgress, [0, 1], [1, 0.92]);
+  const heroStyle = reduce
+    ? undefined
+    : { y: heroY, opacity: heroOpacity, scale: heroScale };
 
   if (isEmbed) {
     return (
@@ -47,7 +67,7 @@ export default function Landing() {
         className="relative flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center px-6 pt-12 pb-12 overflow-hidden"
       >
         <motion.div
-          style={{ y: heroY, opacity: heroOpacity, scale: heroScale }}
+          style={heroStyle}
           className="relative z-10 max-w-5xl text-center"
         >
           {/* WHAT'S NEW — voice mode announcement */}
@@ -60,18 +80,22 @@ export default function Landing() {
               delay: 0.05,
               ease: [0.22, 1, 0.36, 1],
             }}
-            whileHover={{ scale: 1.04 }}
+            whileHover={reduce ? undefined : { scale: 1.04 }}
             whileTap={{ scale: 0.98 }}
             className="group relative inline-flex items-center gap-2 rounded-full glass-card-strong pl-1.5 pr-4 py-1.5 mb-8 shadow-[0_10px_30px_-12px_rgba(42,122,140,0.35)]"
             aria-label="Try Talking to Pal — voice mode"
           >
             <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-[#7CFFA7] to-[#1c8a4e] text-white px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-[0.22em] shadow-[0_4px_10px_-2px_rgba(28,138,78,0.55)]">
-              <motion.span
-                aria-hidden
-                className="h-1.5 w-1.5 rounded-full bg-white"
-                animate={{ opacity: [1, 0.4, 1], scale: [1, 1.3, 1] }}
-                transition={{ duration: 1.6, repeat: Infinity }}
-              />
+              {reduce ? (
+                <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-white" />
+              ) : (
+                <motion.span
+                  aria-hidden
+                  className="h-1.5 w-1.5 rounded-full bg-white"
+                  animate={{ opacity: [1, 0.4, 1], scale: [1, 1.3, 1] }}
+                  transition={{ duration: 1.6, repeat: Infinity }}
+                />
+              )}
               New
             </span>
             <span className="text-[12px] md:text-[13px] font-extrabold tracking-tight text-on-surface flex items-center gap-1.5">
@@ -92,12 +116,14 @@ export default function Landing() {
               arrow_forward
             </span>
             {/* gentle attention ring */}
-            <motion.span
-              aria-hidden
-              className="pointer-events-none absolute inset-0 rounded-full ring-2 ring-[#7CFFA7]/50"
-              animate={{ scale: [1, 1.08, 1], opacity: [0.6, 0, 0.6] }}
-              transition={{ duration: 2.6, repeat: Infinity }}
-            />
+            {!reduce && (
+              <motion.span
+                aria-hidden
+                className="pointer-events-none absolute inset-0 rounded-full ring-2 ring-[#7CFFA7]/50"
+                animate={{ scale: [1, 1.08, 1], opacity: [0.6, 0, 0.6] }}
+                transition={{ duration: 2.6, repeat: Infinity }}
+              />
+            )}
           </motion.a>
 
           <motion.h1
@@ -137,14 +163,20 @@ export default function Landing() {
             <MagneticButton className="group rounded-2xl bg-primary text-on-primary px-8 py-4 font-bold tracking-wide shadow-[0_20px_40px_-10px_rgba(0,97,114,0.5)] hover:shadow-[0_30px_60px_-10px_rgba(0,97,114,0.7)] transition-shadow">
               <Link href="/dashboard" className="flex items-center gap-2">
                 Open the dashboard
-                <motion.span
-                  className="material-symbols-outlined"
-                  initial={{ x: 0 }}
-                  animate={{ x: [0, 4, 0] }}
-                  transition={{ duration: 1.6, repeat: Infinity }}
-                >
-                  arrow_forward
-                </motion.span>
+                {reduce ? (
+                  <span className="material-symbols-outlined">
+                    arrow_forward
+                  </span>
+                ) : (
+                  <motion.span
+                    className="material-symbols-outlined"
+                    initial={{ x: 0 }}
+                    animate={{ x: [0, 4, 0] }}
+                    transition={{ duration: 1.6, repeat: Infinity }}
+                  >
+                    arrow_forward
+                  </motion.span>
+                )}
               </Link>
             </MagneticButton>
 
@@ -223,8 +255,10 @@ export default function Landing() {
           >
             <motion.a
               href="#meet-pal"
-              animate={{ y: [0, 6, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
+              animate={reduce ? undefined : { y: [0, 6, 0] }}
+              transition={
+                reduce ? undefined : { duration: 2, repeat: Infinity }
+              }
               className="text-on-surface-variant/60 hover:text-primary text-xs uppercase tracking-[0.3em] flex flex-col items-center gap-1 transition-colors"
             >
               ask pal
