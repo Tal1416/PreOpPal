@@ -135,30 +135,71 @@ async function pushPatch(patch: Partial<Profile>): Promise<void> {
   }
 }
 
-async function pushMedicationsReplace(meds: Medication[]): Promise<void> {
-  // Brute-force sync: delete all then insert all. Fine for the small lists in
-  // this demo and keeps the optimistic-update code simple. If we ever scale
-  // this past a handful of meds we'd diff instead.
+// Brute-force sync: delete all then insert all. Fine for the small lists in
+// this demo and keeps the optimistic-update code simple. We do two things to
+// keep it safe under rapid edits (e.g. the user typing in a med name field):
+//   1) DEBOUNCE so we collapse many keystrokes into one network round-trip.
+//   2) SERIALIZE so an in-flight replace can't be interleaved with a fresh
+//      one, which would race on the "fetch existing → delete all → insert"
+//      sequence and clobber the user's data.
+let pendingMeds: Medication[] | null = null;
+let medsBusy = false;
+let medsDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+const MEDS_DEBOUNCE_MS = 350;
+
+async function runMedicationsReplace(): Promise<void> {
+  if (medsBusy) return;
+  medsBusy = true;
   try {
-    const current = await fetch("/api/medications").then((r) => r.json());
-    const existing: Medication[] = current.medications ?? [];
-    await Promise.all(
-      existing.map((m) =>
-        fetch(`/api/medications/${m.id}`, { method: "DELETE" }),
-      ),
-    );
-    await Promise.all(
-      meds.map((m, i) =>
-        fetch("/api/medications", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...m, sortOrder: i }),
-        }),
-      ),
-    );
-  } catch (err) {
-    console.warn("[profile] medications sync failed", err);
+    while (pendingMeds !== null) {
+      const next = pendingMeds;
+      pendingMeds = null;
+      try {
+        const current = await fetch("/api/medications").then((r) => r.json());
+        const existing: Medication[] = current.medications ?? [];
+        await Promise.all(
+          existing.map((m) =>
+            fetch(`/api/medications/${m.id}`, { method: "DELETE" }),
+          ),
+        );
+        await Promise.all(
+          next.map((m, i) =>
+            fetch("/api/medications", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ ...m, sortOrder: i }),
+            }),
+          ),
+        );
+      } catch (err) {
+        console.warn("[profile] medications sync failed", err);
+      }
+    }
+  } finally {
+    medsBusy = false;
   }
+}
+
+function pushMedicationsReplace(meds: Medication[]): void {
+  // Always coalesce on the latest list — a later call supersedes the queued one.
+  pendingMeds = meds;
+  if (medsDebounceTimer) clearTimeout(medsDebounceTimer);
+  medsDebounceTimer = setTimeout(() => {
+    medsDebounceTimer = null;
+    void runMedicationsReplace();
+  }, MEDS_DEBOUNCE_MS);
+}
+
+/** Force-flush any pending medication writes synchronously-ish. Used by
+ *  setProfile (e.g. reset) to make sure a hard replace lands without waiting
+ *  out the debounce. */
+function flushMedicationsReplace(meds: Medication[]): void {
+  pendingMeds = meds;
+  if (medsDebounceTimer) {
+    clearTimeout(medsDebounceTimer);
+    medsDebounceTimer = null;
+  }
+  void runMedicationsReplace();
 }
 
 export function ProfileProvider({ children }: { children: ReactNode }) {
@@ -271,7 +312,9 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         const { medications, ...scalar } = p;
         void pushPatch(scalar);
         medsSnapshotRef.current = medications;
-        void pushMedicationsReplace(medications);
+        // Reset / hard set bypasses the keystroke debounce — we want the
+        // user's "Reset" tap to feel instantaneous on the server.
+        flushMedicationsReplace(medications);
       }
     },
     [isAuthenticated],

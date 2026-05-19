@@ -5,6 +5,25 @@ import { motion, AnimatePresence } from "framer-motion";
 import { careTeam, chatSeed, ChatMessage } from "@/data/content";
 import { streamCareReply } from "@/lib/care-chat";
 import { useProfile } from "@/lib/profile-context";
+import { useAuth } from "@/lib/auth-context";
+
+type CareMessageRow = {
+  id: string;
+  role: "user" | "nurse";
+  text: string;
+  created_at: string;
+};
+
+function rowTime(iso: string): string {
+  try {
+    return new Date(iso).toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  } catch {
+    return "";
+  }
+}
 
 function nowTime() {
   return new Date().toLocaleTimeString([], {
@@ -21,24 +40,67 @@ const QUICK_REPLIES = [
 
 export default function CareMobile() {
   const { profile } = useProfile();
+  const { isAuthenticated, hydrated: authHydrated } = useAuth();
   const team = careTeam.map((m, i) =>
     i === 0 && profile.surgeon?.trim()
       ? { ...m, name: profile.surgeon.trim() }
       : m
   );
-  const personalizedSeed = chatSeed.map((m) =>
-    m.id === "1"
-      ? {
-          ...m,
-          text: `Hi ${profile.firstName?.trim() || "there"} — I'm Nurse Amelia. I'll be your point of contact this week. How are you feeling about your ${profile.procedure?.trim() || "procedure"}?`,
-        }
-      : m
-  );
-  const [messages, setMessages] = useState<ChatMessage[]>(personalizedSeed);
+  // The first seeded greeting is always shown — it gives the chat warmth even
+  // for brand-new accounts. Persisted history (from /api/care-chat) follows it.
+  const seedGreeting: ChatMessage = {
+    id: "1",
+    from: "nurse",
+    text: `Hi ${profile.firstName?.trim() || "there"} — I'm Nurse Amelia. I'll be your point of contact this week. How are you feeling about your ${profile.procedure?.trim() || "procedure"}?`,
+    time: "9:02 AM",
+  };
+  const [messages, setMessages] = useState<ChatMessage[]>(() => [
+    seedGreeting,
+    ...chatSeed.slice(1),
+  ]);
+  const [historyHydrated, setHistoryHydrated] = useState(false);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Hydrate persisted care-chat history once the user is authenticated.
+  useEffect(() => {
+    if (!authHydrated || historyHydrated) return;
+    if (!isAuthenticated) {
+      setHistoryHydrated(true);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/care-chat", { cache: "no-store" });
+        if (!res.ok) return;
+        const json = (await res.json()) as { messages?: CareMessageRow[] };
+        const rows = json.messages ?? [];
+        if (!cancelled && rows.length > 0) {
+          const restored: ChatMessage[] = rows.map((r) => ({
+            id: r.id,
+            from: r.role,
+            text: r.text,
+            time: rowTime(r.created_at),
+          }));
+          setMessages([seedGreeting, ...restored]);
+        }
+      } catch {
+        // ignore — keep the seed greeting
+      } finally {
+        if (!cancelled) setHistoryHydrated(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // We deliberately only hydrate once per mount; seedGreeting is stable
+    // enough since the dependencies that change it (firstName, procedure)
+    // are part of profile and don't need to invalidate persisted history.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authHydrated, isAuthenticated]);
 
   useEffect(() => {
     if (!chatOpen) return;

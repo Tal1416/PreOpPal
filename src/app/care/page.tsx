@@ -13,8 +13,27 @@ import ScrollReveal, {
 import { careTeam, chatSeed, ChatMessage } from "@/data/content";
 import { streamCareReply } from "@/lib/care-chat";
 import { useProfile } from "@/lib/profile-context";
+import { useAuth } from "@/lib/auth-context";
 import { useViewMode } from "@/lib/view-mode-context";
 import CareMobile from "@/components/mobile/CareMobile";
+
+type CareMessageRow = {
+  id: string;
+  role: "user" | "nurse";
+  text: string;
+  created_at: string;
+};
+
+function rowTime(iso: string): string {
+  try {
+    return new Date(iso).toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  } catch {
+    return "";
+  }
+}
 
 function nowTime() {
   return new Date().toLocaleTimeString([], {
@@ -33,6 +52,7 @@ export default function CareSupportPage() {
 
 function CareSupport() {
   const { profile } = useProfile();
+  const { isAuthenticated, hydrated: authHydrated } = useAuth();
   const { isEmbed } = useViewMode();
   const searchParams = useSearchParams();
   const chatId = searchParams.get("chat");
@@ -62,6 +82,39 @@ function CareSupport() {
     setMessages(personalizedSeed);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [partner.id]);
+
+  // Hydrate persisted care-chat history once on login. Persisted messages
+  // follow the seeded greeting, so the chat always opens warmly while the
+  // user's actual back-and-forth survives refreshes.
+  useEffect(() => {
+    if (!authHydrated || !isAuthenticated) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/care-chat", { cache: "no-store" });
+        if (!res.ok) return;
+        const json = (await res.json()) as { messages?: CareMessageRow[] };
+        const rows = json.messages ?? [];
+        if (!cancelled && rows.length > 0) {
+          setMessages((current) => {
+            const greeting = current[0];
+            const restored: ChatMessage[] = rows.map((r) => ({
+              id: r.id,
+              from: r.role,
+              text: r.text,
+              time: rowTime(r.created_at),
+            }));
+            return greeting ? [greeting, ...restored] : restored;
+          });
+        }
+      } catch {
+        // ignore — keep the personalized seed
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [authHydrated, isAuthenticated, partner.id]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({
