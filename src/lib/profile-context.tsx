@@ -125,13 +125,22 @@ function isEmptyProfile(p: Partial<Profile>): boolean {
 
 async function pushPatch(patch: Partial<Profile>): Promise<void> {
   try {
-    await fetch("/api/profile", {
+    const res = await fetch("/api/profile", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(patch),
     });
+    if (!res.ok) {
+      // Surface server errors loudly. Silent console.warn was hiding the 401s
+      // that caused "nothing persists in production" — see middleware.ts.
+      const text = await res.text().catch(() => "");
+      console.error(
+        `[profile] PATCH /api/profile -> ${res.status}`,
+        text || res.statusText,
+      );
+    }
   } catch (err) {
-    console.warn("[profile] PATCH failed", err);
+    console.error("[profile] PATCH failed", err);
   }
 }
 
