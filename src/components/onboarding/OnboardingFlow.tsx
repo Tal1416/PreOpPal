@@ -61,7 +61,7 @@ export default function OnboardingFlow() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="fixed inset-0 z-[200] overflow-y-auto"
+      className="fixed inset-0 z-[200] overflow-hidden flex flex-col"
       role="dialog"
       aria-modal="true"
       aria-label="Welcome to PreOpPal"
@@ -69,7 +69,7 @@ export default function OnboardingFlow() {
       {/* backdrop */}
       <div
         aria-hidden
-        className="absolute inset-0 bg-background"
+        className="absolute inset-0 bg-background pointer-events-none"
         style={{
           backgroundImage:
             "radial-gradient(at 80% 0%, rgba(172,237,255,0.45), transparent 50%), radial-gradient(at 0% 100%, rgba(136,209,229,0.4), transparent 60%)",
@@ -77,7 +77,7 @@ export default function OnboardingFlow() {
       />
       <motion.div
         aria-hidden
-        className="absolute -top-32 -right-32 h-[480px] w-[480px] rounded-full"
+        className="absolute -top-32 -right-32 h-[480px] w-[480px] rounded-full pointer-events-none"
         style={{
           background:
             "radial-gradient(circle, rgba(136,209,229,0.4), transparent 70%)",
@@ -87,7 +87,7 @@ export default function OnboardingFlow() {
       />
       <motion.div
         aria-hidden
-        className="absolute -bottom-40 -left-40 h-[520px] w-[520px] rounded-full"
+        className="absolute -bottom-40 -left-40 h-[520px] w-[520px] rounded-full pointer-events-none"
         style={{
           background:
             "radial-gradient(circle, rgba(176,236,254,0.35), transparent 70%)",
@@ -96,9 +96,8 @@ export default function OnboardingFlow() {
         transition={{ duration: 22, repeat: Infinity }}
       />
 
-      <div className="relative min-h-screen flex flex-col">
-        {/* PROGRESS HEADER */}
-        <header className="shrink-0 px-5 lg:px-12 pt-8 pb-4">
+      {/* PROGRESS HEADER */}
+      <header className="relative shrink-0 px-5 lg:px-12 pt-8 pb-4">
           <div className="max-w-4xl mx-auto">
             <div className="flex items-center justify-between gap-4">
               <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary">
@@ -138,7 +137,7 @@ export default function OnboardingFlow() {
         </header>
 
         {/* STEP CONTENT */}
-        <main className="flex-1 px-5 lg:px-12 py-6">
+        <main className="relative flex-1 overflow-y-auto overscroll-contain px-5 lg:px-12 py-6">
           <div className="max-w-4xl mx-auto">
             <motion.div
               key={step}
@@ -335,8 +334,8 @@ export default function OnboardingFlow() {
           </div>
         </main>
 
-        {/* FOOTER NAV */}
-        <footer className="shrink-0 px-5 lg:px-12 pb-8 pt-4">
+      {/* FOOTER NAV */}
+      <footer className="relative shrink-0 px-5 lg:px-12 pb-8 pt-4">
           <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
             <button
               type="button"
@@ -376,9 +375,8 @@ export default function OnboardingFlow() {
                 </span>
               </motion.button>
             )}
-          </div>
-        </footer>
-      </div>
+        </div>
+      </footer>
     </motion.div>
   );
 }
