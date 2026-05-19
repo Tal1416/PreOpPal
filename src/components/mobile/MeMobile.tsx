@@ -6,6 +6,7 @@ import Modal from "@/components/ui/Modal";
 import AvatarPicker from "@/components/ui/AvatarPicker";
 import ProcedurePicker from "@/components/ui/ProcedurePicker";
 import { useProfile } from "@/lib/profile-context";
+import { Skeleton, SkeletonText } from "@/components/ui/Skeleton";
 import type { Medication } from "@/data/content";
 
 const SECTIONS = [
@@ -55,6 +56,7 @@ export default function MeMobile() {
     readinessScore,
     setProcedure,
     setCustomProcedure,
+    hydrated,
   } = useProfile();
   const [active, setActive] = useState<SectionId>("personal");
   const [saved, setSaved] = useState(false);
@@ -120,47 +122,68 @@ export default function MeMobile() {
           transition={{ duration: 12, repeat: Infinity }}
         />
         <div className="relative px-5 pt-5 pb-5 flex items-center gap-4">
-          <button
-            type="button"
-            onClick={() => setAvatarPickerOpen(true)}
-            aria-label="Change avatar"
-            className="group relative h-16 w-16 rounded-2xl overflow-hidden ring-2 ring-white/40 shrink-0 active:scale-95 transition-transform"
-          >
-            <img
-              src={profile.avatar}
-              alt={profile.firstName}
-              className="h-full w-full object-cover"
-            />
-            <span className="absolute inset-0 bg-on-surface/40 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity flex items-center justify-center">
-              <span className="material-symbols-outlined text-white text-[20px]">
-                photo_camera
+          {hydrated ? (
+            <button
+              type="button"
+              onClick={() => setAvatarPickerOpen(true)}
+              aria-label="Change avatar"
+              className="group relative h-16 w-16 rounded-2xl overflow-hidden ring-2 ring-white/40 shrink-0 active:scale-95 transition-transform"
+            >
+              <img
+                src={profile.avatar}
+                alt={profile.firstName}
+                className="h-full w-full object-cover"
+              />
+              <span className="absolute inset-0 bg-on-surface/40 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity flex items-center justify-center">
+                <span className="material-symbols-outlined text-white text-[20px]">
+                  photo_camera
+                </span>
               </span>
-            </span>
-            <span className="absolute bottom-0 right-0 h-5 w-5 rounded-tl-lg bg-primary text-white flex items-center justify-center shadow-md">
-              <span className="material-symbols-outlined text-[12px]">
-                edit
+              <span className="absolute bottom-0 right-0 h-5 w-5 rounded-tl-lg bg-primary text-white flex items-center justify-center shadow-md">
+                <span className="material-symbols-outlined text-[12px]">
+                  edit
+                </span>
               </span>
-            </span>
-          </button>
+            </button>
+          ) : (
+            <Skeleton rounded="rounded-2xl" className="h-16 w-16 shrink-0" />
+          )}
           <div className="flex-1 min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/70">
               About you
             </p>
-            <h1 className="text-xl font-extrabold tracking-tight truncate">
-              {profile.firstName?.trim() || "you"}{" "}
-              {profile.lastName?.trim()}
-            </h1>
-            <p className="text-[12px] text-white/80 truncate">
-              {profile.procedure}
-            </p>
+            {hydrated ? (
+              <>
+                <h1 className="text-xl font-extrabold tracking-tight truncate">
+                  {profile.firstName?.trim() || "you"}{" "}
+                  {profile.lastName?.trim()}
+                </h1>
+                <p className="text-[12px] text-white/80 truncate">
+                  {profile.procedure}
+                </p>
+              </>
+            ) : (
+              <div className="space-y-1.5 mt-1">
+                <SkeletonText widthClass="w-32" heightClass="h-5" />
+                <SkeletonText widthClass="w-24" heightClass="h-3" />
+              </div>
+            )}
           </div>
           <div className="text-right shrink-0">
             <p className="text-[9px] uppercase tracking-widest text-white/70 font-bold">
               Profile
             </p>
-            <p className="text-2xl font-extrabold tabular-nums text-[#acedff] leading-none mt-0.5">
-              {readinessScore}%
-            </p>
+            {hydrated ? (
+              <p className="text-2xl font-extrabold tabular-nums text-[#acedff] leading-none mt-0.5">
+                {readinessScore}%
+              </p>
+            ) : (
+              <SkeletonText
+                widthClass="w-12"
+                heightClass="h-6"
+                className="mt-0.5"
+              />
+            )}
           </div>
         </div>
       </motion.section>

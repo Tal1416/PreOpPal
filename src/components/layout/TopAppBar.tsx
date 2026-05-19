@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useProfile } from "@/lib/profile-context";
-import { SkeletonText } from "@/components/ui/Skeleton";
+import { SkeletonAvatar, SkeletonText } from "@/components/ui/Skeleton";
 import { useViewMode } from "@/lib/view-mode-context";
 import AvatarPicker from "@/components/ui/AvatarPicker";
 import NotificationsPanel from "./NotificationsPanel";
@@ -46,13 +46,17 @@ export default function TopAppBar() {
       {isEmbed ? (
         <div className="flex w-full items-center justify-between lg:hidden">
           <Link href="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 overflow-hidden rounded-full ring-2 ring-white">
-              <img
-                src={profile.avatar}
-                alt={profile.firstName}
-                className="h-full w-full object-cover"
-              />
-            </div>
+            {profileHydrated ? (
+              <div className="h-8 w-8 overflow-hidden rounded-full ring-2 ring-white">
+                <img
+                  src={profile.avatar}
+                  alt={profile.firstName}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            ) : (
+              <SkeletonAvatar sizeClass="h-8 w-8" />
+            )}
           </Link>
           <span className="text-[15px] font-extrabold tracking-tight text-on-surface truncate">
             {mobileTitle}
@@ -72,13 +76,17 @@ export default function TopAppBar() {
       ) : (
         <>
           <Link href="/" className="flex items-center gap-3 lg:hidden">
-            <div className="h-9 w-9 overflow-hidden rounded-full ring-2 ring-white">
-              <img
-                src={profile.avatar}
-                alt={profile.firstName}
-                className="h-full w-full object-cover"
-              />
-            </div>
+            {profileHydrated ? (
+              <div className="h-9 w-9 overflow-hidden rounded-full ring-2 ring-white">
+                <img
+                  src={profile.avatar}
+                  alt={profile.firstName}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            ) : (
+              <SkeletonAvatar sizeClass="h-9 w-9" />
+            )}
             <span className="text-lg font-extrabold tracking-tighter gradient-text-static">
               PreOpPal
             </span>
@@ -130,23 +138,27 @@ export default function TopAppBar() {
               </div>
             )}
           </div>
-          <button
-            type="button"
-            onClick={() => setAvatarPickerOpen(true)}
-            aria-label="Change avatar"
-            className="group relative h-9 w-9 rounded-full overflow-hidden ring-2 ring-white active:scale-95 transition-transform"
-          >
-            <img
-              src={profile.avatar}
-              alt=""
-              className="h-full w-full object-cover"
-            />
-            <span className="absolute inset-0 bg-on-surface/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-              <span className="material-symbols-outlined text-white text-[14px]">
-                photo_camera
+          {profileHydrated ? (
+            <button
+              type="button"
+              onClick={() => setAvatarPickerOpen(true)}
+              aria-label="Change avatar"
+              className="group relative h-9 w-9 rounded-full overflow-hidden ring-2 ring-white active:scale-95 transition-transform"
+            >
+              <img
+                src={profile.avatar}
+                alt=""
+                className="h-full w-full object-cover"
+              />
+              <span className="absolute inset-0 bg-on-surface/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <span className="material-symbols-outlined text-white text-[14px]">
+                  photo_camera
+                </span>
               </span>
-            </span>
-          </button>
+            </button>
+          ) : (
+            <SkeletonAvatar sizeClass="h-9 w-9" />
+          )}
         </div>
       </div>
         </>

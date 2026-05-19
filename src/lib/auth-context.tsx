@@ -38,6 +38,15 @@ type Ctx = {
   isAuthenticated: boolean;
   signIn: (email: string, password: string) => Promise<Result>;
   signUp: (email: string, password: string) => Promise<Result>;
+  /**
+   * Kick off Google OAuth. The browser is redirected to Google's consent
+   * screen and (on success) eventually lands on `/auth/callback`, which
+   * exchanges the PKCE code for a Supabase session and then redirects to
+   * `nextPath` (defaults to `/me`). Returns `{ok:false}` only on
+   * synchronous setup failure — once the redirect kicks in, control leaves
+   * this page so the resolved promise rarely matters.
+   */
+  signInWithGoogle: (nextPath?: string) => Promise<Result>;
   signOut: () => Promise<void>;
 };
 
@@ -151,6 +160,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const signInWithGoogle = useCallback(
+    async (nextPath?: string): Promise<Result> => {
+      try {
+        const supabase = getBrowserClient();
+        // The callback route exchanges the PKCE code for a session, then
+        // forwards the user to `next`. We use the browser's current origin so
+        // this works on prod, vercel previews, and localhost without any
+        // env-var plumbing.
+        const next = nextPath ?? "/me";
+        const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo,
+            queryParams: {
+              // Always show the account chooser so users on shared machines
+              // can pick the right Google account.
+              prompt: "select_account",
+            },
+          },
+        });
+        if (error) {
+          return { ok: false, error: error.message };
+        }
+        // The browser navigates away on success — we don't get here.
+        return { ok: true };
+      } catch (e) {
+        return { ok: false, error: (e as Error).message ?? "OAuth error." };
+      }
+    },
+    [],
+  );
+
   const signOut = useCallback(async () => {
     try {
       await fetch("/api/auth/signout", { method: "POST" });
@@ -179,6 +221,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: !!user,
         signIn,
         signUp,
+        signInWithGoogle,
         signOut,
       }}
     >

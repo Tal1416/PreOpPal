@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import GlassCard from "@/components/ui/GlassCard";
+import GoogleIcon from "@/components/ui/GoogleIcon";
 import { DEMO_EMAIL, DEMO_PASSWORD, useAuth } from "@/lib/auth-context";
 
 type Mode = "login" | "signup";
@@ -13,7 +14,8 @@ export default function LoginMobile() {
   const router = useRouter();
   const params = useSearchParams();
   const next = params.get("next") || "/me";
-  const { signIn, signUp, isAuthenticated, hydrated } = useAuth();
+  const { signIn, signUp, signInWithGoogle, isAuthenticated, hydrated } =
+    useAuth();
 
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
@@ -21,12 +23,35 @@ export default function LoginMobile() {
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [googleSubmitting, setGoogleSubmitting] = useState(false);
+
+  // Surface OAuth errors that the /auth/callback route bounced back here.
+  useEffect(() => {
+    const oauthError = params.get("error");
+    if (!oauthError) return;
+    const msg = params.get("message");
+    if (oauthError === "oauth_no_code") {
+      setError("Google sign-in was cancelled or failed.");
+    } else if (oauthError === "oauth_exchange_failed") {
+      setError(msg || "Google sign-in failed. Please try again.");
+    }
+  }, [params]);
 
   useEffect(() => {
     if (hydrated && isAuthenticated) {
       router.replace(next);
     }
   }, [hydrated, isAuthenticated, next, router]);
+
+  async function handleGoogle() {
+    setError(null);
+    setGoogleSubmitting(true);
+    const result = await signInWithGoogle(next);
+    if (!result.ok) {
+      setError(result.error);
+      setGoogleSubmitting(false);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -135,6 +160,30 @@ export default function LoginMobile() {
                 {m === "login" ? "Sign in" : "Sign up"}
               </button>
             ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={handleGoogle}
+            disabled={googleSubmitting || submitting}
+            className="w-full flex items-center justify-center gap-2.5 rounded-2xl bg-white border border-on-surface/10 px-4 py-2.5 text-[13px] font-semibold text-on-surface shadow-sm active:opacity-80 transition-opacity disabled:opacity-60 disabled:pointer-events-none"
+          >
+            {googleSubmitting ? (
+              <span className="material-symbols-outlined animate-spin text-primary text-[16px]">
+                progress_activity
+              </span>
+            ) : (
+              <GoogleIcon className="h-4 w-4" />
+            )}
+            {mode === "login" ? "Sign in with Google" : "Sign up with Google"}
+          </button>
+
+          <div className="flex items-center gap-2.5 my-4">
+            <span className="h-px flex-1 bg-on-surface/10" />
+            <span className="text-[9px] font-bold uppercase tracking-widest text-on-surface-variant/60">
+              or
+            </span>
+            <span className="h-px flex-1 bg-on-surface/10" />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-3.5">

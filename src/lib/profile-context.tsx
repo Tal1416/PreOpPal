@@ -230,6 +230,14 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    // Flip hydrated back to false for the duration of the fetch so consumers
+    // can render skeletons through the *transition* into the authenticated
+    // view too. Without this, a user who just signed in keeps seeing the
+    // logged-out seed ("Alex Morgan") for the few hundred ms it takes
+    // /api/profile to land — the exact flash this whole skeleton system is
+    // here to prevent.
+    setHydrated(false);
+
     let cancelled = false;
     (async () => {
       try {
