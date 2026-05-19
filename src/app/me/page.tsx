@@ -12,6 +12,7 @@ import { useProfile } from "@/lib/profile-context";
 import { useViewMode } from "@/lib/view-mode-context";
 import MeMobile from "@/components/mobile/MeMobile";
 import type { Medication } from "@/data/content";
+import { Skeleton, SkeletonText } from "@/components/ui/Skeleton";
 
 const inputCls =
   "w-full rounded-xl border border-white/60 bg-white/70 backdrop-blur-md px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/60 outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition";
@@ -71,6 +72,58 @@ const emptyMedication: Omit<Medication, "id"> = {
   reason: "",
 };
 
+/**
+ * Skeleton shown while the profile is hydrating from Supabase, so we never
+ * flash the demo seed ("Alex Morgan") between mount and fetch completion.
+ * Roughly mirrors the real /me layout: hero, four field-card sections.
+ */
+function MeSkeleton() {
+  return (
+    <PageShell>
+      <div className="max-w-5xl mx-auto space-y-12 pb-32">
+        {/* hero */}
+        <div>
+          <SkeletonText
+            widthClass="w-24"
+            heightClass="h-3"
+            className="mb-3"
+          />
+          <div className="flex flex-wrap items-end justify-between gap-6">
+            <SkeletonText widthClass="w-80 max-w-full" heightClass="h-12 md:h-16" />
+            <Skeleton rounded="rounded-2xl" className="h-20 w-44" />
+          </div>
+          <SkeletonText
+            widthClass="w-[28rem] max-w-full"
+            heightClass="h-5"
+            className="mt-4"
+          />
+        </div>
+
+        {/* four field-card sections */}
+        {[0, 1, 2, 3].map((i) => (
+          <GlassCard key={i} className="p-8 md:p-10" tilt={false}>
+            <div className="mb-6 flex items-center gap-3">
+              <Skeleton rounded="rounded-xl" className="h-10 w-10" />
+              <div className="space-y-2">
+                <SkeletonText widthClass="w-32" heightClass="h-5" />
+                <SkeletonText widthClass="w-56" heightClass="h-3" />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {[0, 1, 2, 3].map((j) => (
+                <div key={j} className="space-y-2">
+                  <SkeletonText widthClass="w-20" heightClass="h-3" />
+                  <Skeleton className="h-11 w-full" />
+                </div>
+              ))}
+            </div>
+          </GlassCard>
+        ))}
+      </div>
+    </PageShell>
+  );
+}
+
 function MePageInner() {
   const {
     profile,
@@ -79,6 +132,7 @@ function MePageInner() {
     readinessScore,
     setProcedure,
     setCustomProcedure,
+    hydrated,
   } = useProfile();
   const { isEmbed } = useViewMode();
   const [saved, setSaved] = useState(false);
@@ -91,6 +145,14 @@ function MePageInner() {
         <MeMobile />
       </PageShell>
     );
+  }
+
+  // Hold a shimmer skeleton until the profile actually arrives from Supabase.
+  // Without this, we render the seed profile ("Alex Morgan") for a frame or
+  // two, the user sees their name flicker, and any in-flight edits look like
+  // they're "competing" with cached values.
+  if (!hydrated) {
+    return <MeSkeleton />;
   }
 
   function openMedicationModal() {

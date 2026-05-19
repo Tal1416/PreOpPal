@@ -13,6 +13,7 @@ import ScrollReveal, {
   StaggerGroup,
   StaggerItem,
 } from "@/components/ui/ScrollReveal";
+import { SkeletonText } from "@/components/ui/Skeleton";
 import AICompanionCard from "@/components/ai/AICompanionCard";
 import DashboardMobile from "@/components/mobile/DashboardMobile";
 import OnboardingFlow from "@/components/onboarding/OnboardingFlow";
@@ -68,21 +69,37 @@ function DashboardInner() {
               <p className="text-xs font-bold uppercase tracking-[0.3em] text-primary mb-2">
                 The Big Day
               </p>
-              <h1 className="text-balance text-3xl md:text-6xl font-extrabold tracking-tight text-on-surface">
-                Good morning, {greetingName}.
-              </h1>
-              <p className="mt-3 text-on-surface-variant text-base md:text-lg max-w-xl">
-                You're doing great. Everything is on track for{" "}
-                {surgeryDateLabel}.
-              </p>
+              {hydrated ? (
+                <>
+                  <h1 className="text-balance text-3xl md:text-6xl font-extrabold tracking-tight text-on-surface">
+                    Good morning, {greetingName}.
+                  </h1>
+                  <p className="mt-3 text-on-surface-variant text-base md:text-lg max-w-xl">
+                    You're doing great. Everything is on track for{" "}
+                    {surgeryDateLabel}.
+                  </p>
+                </>
+              ) : (
+                <div className="space-y-3">
+                  <SkeletonText
+                    widthClass="w-[min(90vw,32rem)]"
+                    heightClass="h-12 md:h-16"
+                  />
+                  <SkeletonText widthClass="w-72 max-w-full" heightClass="h-5" />
+                </div>
+              )}
             </div>
             <div className="flex items-center gap-2 rounded-full bg-white/60 backdrop-blur-xl px-4 py-2 border border-white/60 shadow-glass">
               <span className="material-symbols-outlined text-primary">
                 event
               </span>
-              <span className="text-sm font-bold text-on-surface">
-                {surgeryDateLabel}
-              </span>
+              {hydrated ? (
+                <span className="text-sm font-bold text-on-surface">
+                  {surgeryDateLabel}
+                </span>
+              ) : (
+                <SkeletonText widthClass="w-24" heightClass="h-4" />
+              )}
             </div>
           </div>
         </ScrollReveal>
@@ -102,10 +119,19 @@ function DashboardInner() {
                   Countdown
                 </p>
                 <h2 className="text-[clamp(3rem,7vw,5.5rem)] leading-none font-extrabold tracking-tighter">
-                  <span className="gradient-text-static tabular-nums">
-                    <AnimatedNumber to={profile.daysToSurgery} />
-                  </span>
-                  <span className="text-on-surface"> Days</span>
+                  {hydrated ? (
+                    <>
+                      <span className="gradient-text-static tabular-nums">
+                        <AnimatedNumber to={profile.daysToSurgery} />
+                      </span>
+                      <span className="text-on-surface"> Days</span>
+                    </>
+                  ) : (
+                    <SkeletonText
+                      widthClass="w-60"
+                      heightClass="h-[clamp(3rem,7vw,5.5rem)]"
+                    />
+                  )}
                 </h2>
                 <p className="mt-2 text-xl font-medium text-on-surface-variant flex items-center gap-2">
                   <span aria-hidden className="text-2xl">

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useProfile } from "@/lib/profile-context";
+import { SkeletonText } from "@/components/ui/Skeleton";
 import { useViewMode } from "@/lib/view-mode-context";
 import AvatarPicker from "@/components/ui/AvatarPicker";
 import NotificationsPanel from "./NotificationsPanel";
@@ -23,7 +24,7 @@ const TITLES: Record<string, string> = {
 export default function TopAppBar() {
   const pathname = usePathname();
   const title = TITLES[pathname];
-  const { profile, updateProfile } = useProfile();
+  const { profile, updateProfile, hydrated: profileHydrated } = useProfile();
   const { isEmbed } = useViewMode();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
@@ -113,12 +114,21 @@ export default function TopAppBar() {
         </button>
         <div className="hidden md:flex items-center gap-3 pl-4 border-l border-white/60">
           <div className="text-right">
-            <p className="text-xs font-bold leading-none">
-              {profile.firstName} {profile.lastName}
-            </p>
-            <p className="text-[10px] text-primary font-medium mt-0.5">
-              T-{profile.daysToSurgery} days
-            </p>
+            {profileHydrated ? (
+              <>
+                <p className="text-xs font-bold leading-none">
+                  {profile.firstName} {profile.lastName}
+                </p>
+                <p className="text-[10px] text-primary font-medium mt-0.5">
+                  T-{profile.daysToSurgery} days
+                </p>
+              </>
+            ) : (
+              <div className="space-y-1.5">
+                <SkeletonText widthClass="w-24" heightClass="h-3" />
+                <SkeletonText widthClass="w-16" heightClass="h-2.5" />
+              </div>
+            )}
           </div>
           <button
             type="button"

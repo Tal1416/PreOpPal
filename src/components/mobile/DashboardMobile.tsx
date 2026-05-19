@@ -10,6 +10,7 @@ import { tasksFor } from "@/data/procedure-customizations";
 import { useProfile } from "@/lib/profile-context";
 import { formatSurgeryDate } from "@/lib/date";
 import { useChecklist } from "@/lib/useChecklist";
+import { SkeletonText } from "@/components/ui/Skeleton";
 
 export default function DashboardMobile() {
   const { profile, readinessScore, hydrated, currentProcedure } = useProfile();
@@ -64,19 +65,37 @@ export default function DashboardMobile() {
           <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/70">
             Good morning
           </p>
-          <h1 className="mt-1 text-[26px] leading-tight font-extrabold tracking-tight">
-            Hi {greetingName}.
-          </h1>
+          {hydrated ? (
+            <h1 className="mt-1 text-[26px] leading-tight font-extrabold tracking-tight">
+              Hi {greetingName}.
+            </h1>
+          ) : (
+            <div className="mt-2">
+              <SkeletonText widthClass="w-40" heightClass="h-7" />
+            </div>
+          )}
           <div className="mt-4 flex items-end gap-3">
-            <span className="text-[64px] leading-none font-extrabold tabular-nums text-[#acedff]">
-              <AnimatedNumber to={profile.daysToSurgery} />
-            </span>
+            {hydrated ? (
+              <span className="text-[64px] leading-none font-extrabold tabular-nums text-[#acedff]">
+                <AnimatedNumber to={profile.daysToSurgery} />
+              </span>
+            ) : (
+              <SkeletonText widthClass="w-24" heightClass="h-14" />
+            )}
             <div className="pb-2">
               <p className="text-sm font-semibold leading-tight">days to go</p>
-              <p className="text-[11px] text-white/70 mt-0.5 flex items-center gap-1">
-                <span aria-hidden>{currentProcedure.emoji}</span>
-                {profile.procedure}
-              </p>
+              {hydrated ? (
+                <p className="text-[11px] text-white/70 mt-0.5 flex items-center gap-1">
+                  <span aria-hidden>{currentProcedure.emoji}</span>
+                  {profile.procedure}
+                </p>
+              ) : (
+                <SkeletonText
+                  widthClass="w-28"
+                  heightClass="h-3"
+                  className="mt-1"
+                />
+              )}
             </div>
           </div>
           <div className="mt-4 flex flex-wrap items-center gap-2">

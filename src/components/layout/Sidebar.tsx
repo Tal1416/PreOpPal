@@ -7,6 +7,10 @@ import { motion } from "framer-motion";
 import AvatarPicker from "@/components/ui/AvatarPicker";
 import { useProfile } from "@/lib/profile-context";
 import { useAuth } from "@/lib/auth-context";
+import {
+  SkeletonAvatar,
+  SkeletonText,
+} from "@/components/ui/Skeleton";
 
 const NAV_ITEMS = [
   { to: "/dashboard", icon: "dashboard", label: "Dashboard" },
@@ -21,7 +25,7 @@ const NAV_ITEMS = [
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { profile, updateProfile } = useProfile();
+  const { profile, updateProfile, hydrated: profileHydrated } = useProfile();
   const { isAuthenticated, hydrated, signOut } = useAuth();
   const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
 
@@ -78,30 +82,43 @@ export default function Sidebar() {
 
       <div className="mt-auto p-4 border-t border-white/40">
         <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/40 mb-3">
-          <button
-            type="button"
-            onClick={() => setAvatarPickerOpen(true)}
-            aria-label="Change avatar"
-            className="group relative w-10 h-10 shrink-0 rounded-full overflow-hidden ring-2 ring-white active:scale-95 transition-transform"
-          >
-            <img
-              src={profile.avatar}
-              alt={profile.firstName}
-              className="w-full h-full object-cover"
-            />
-            <span className="absolute inset-0 bg-on-surface/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-              <span className="material-symbols-outlined text-white text-[14px]">
-                photo_camera
+          {profileHydrated ? (
+            <button
+              type="button"
+              onClick={() => setAvatarPickerOpen(true)}
+              aria-label="Change avatar"
+              className="group relative w-10 h-10 shrink-0 rounded-full overflow-hidden ring-2 ring-white active:scale-95 transition-transform"
+            >
+              <img
+                src={profile.avatar}
+                alt={profile.firstName}
+                className="w-full h-full object-cover"
+              />
+              <span className="absolute inset-0 bg-on-surface/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <span className="material-symbols-outlined text-white text-[14px]">
+                  photo_camera
+                </span>
               </span>
-            </span>
-          </button>
-          <div className="min-w-0">
-            <p className="text-xs font-bold text-on-surface truncate">
-              {profile.firstName} {profile.lastName}
-            </p>
-            <p className="text-[10px] text-primary font-medium">
-              ID {profile.patientId} · {profile.procedure}
-            </p>
+            </button>
+          ) : (
+            <SkeletonAvatar sizeClass="w-10 h-10" />
+          )}
+          <div className="min-w-0 flex-1">
+            {profileHydrated ? (
+              <>
+                <p className="text-xs font-bold text-on-surface truncate">
+                  {profile.firstName} {profile.lastName}
+                </p>
+                <p className="text-[10px] text-primary font-medium">
+                  ID {profile.patientId} · {profile.procedure}
+                </p>
+              </>
+            ) : (
+              <div className="space-y-1.5">
+                <SkeletonText widthClass="w-24" heightClass="h-3" />
+                <SkeletonText widthClass="w-32" heightClass="h-2.5" />
+              </div>
+            )}
           </div>
         </div>
         <Link
