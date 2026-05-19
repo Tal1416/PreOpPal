@@ -61,10 +61,14 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ profile: null });
   }
 
+  // Upsert (not update) so users who signed up before the migrations ran —
+  // i.e. who have an auth.users row but no profiles row because the trigger
+  // didn't exist yet — get a profile row created on their first save instead
+  // of hitting a phantom "no row found" 500. The RLS owner-insert and
+  // owner-update policies both check `auth.uid() = id`, so the upsert is safe.
   const { data, error } = await supabase
     .from("profiles")
-    .update(row)
-    .eq("id", user.id)
+    .upsert({ id: user.id, ...row })
     .select("*")
     .single<ProfileRow>();
   if (error) {

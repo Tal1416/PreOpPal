@@ -601,7 +601,7 @@ function MePageInner() {
                   >
                     check_circle
                   </span>
-                  Saved to this device
+                  Saved to your account
                 </motion.div>
               )}
             </AnimatePresence>
