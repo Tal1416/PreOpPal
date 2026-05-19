@@ -10,5 +10,6 @@ export async function GET(req: Request) {
   if (!code) {
     return NextResponse.json({ error: "Missing code" }, { status: 400 });
   }
-  return NextResponse.json(getStatus(code));
+  const status = await getStatus(code);
+  return NextResponse.json(status);
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import PageShell from "@/components/layout/PageShell";
 import GlassCard from "@/components/ui/GlassCard";
@@ -13,19 +13,26 @@ import { bagCategories } from "@/data/content";
 import { bagCategoriesFor } from "@/data/procedures";
 import { useProfile } from "@/lib/profile-context";
 import { useViewMode } from "@/lib/view-mode-context";
+import { useChecklist } from "@/lib/useChecklist";
 
 type CategoryState = (typeof bagCategories)[number];
 
 export default function HospitalBag() {
   const { isEmbed } = useViewMode();
   const { profile, currentProcedure } = useProfile();
-  const [cats, setCats] = useState<CategoryState[]>(() =>
-    bagCategoriesFor(profile.procedureId, bagCategories)
-  );
+  const { isChecked, toggle: toggleItem } = useChecklist("bag");
 
-  useEffect(() => {
-    setCats(bagCategoriesFor(profile.procedureId, bagCategories));
-  }, [profile.procedureId]);
+  // The catalog (procedure-specific items) is read-only; the user-toggled
+  // state comes from useChecklist. We merge them at render time so the
+  // catalog can change without invalidating saved checks.
+  const cats = useMemo<CategoryState[]>(() => {
+    const base = bagCategoriesFor(profile.procedureId, bagCategories);
+    return base.map((c) => ({
+      ...c,
+      items: c.items.map((i) => ({ ...i, checked: isChecked(i.id) })),
+    }));
+  }, [profile.procedureId, isChecked]);
+
   const totals = useMemo(() => {
     const all = cats.flatMap((c) => c.items);
     return {
@@ -42,19 +49,8 @@ export default function HospitalBag() {
     );
   }
 
-  function toggle(catId: string, itemId: string) {
-    setCats((cur) =>
-      cur.map((c) =>
-        c.id === catId
-          ? {
-              ...c,
-              items: c.items.map((i) =>
-                i.id === itemId ? { ...i, checked: !i.checked } : i
-              ),
-            }
-          : c
-      )
-    );
+  function toggle(_catId: string, itemId: string) {
+    toggleItem(itemId);
   }
 
   return (

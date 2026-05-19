@@ -34,20 +34,75 @@ let chunkListeners: Set<(messageId: string, delta: string, done: boolean) => voi
   new Set();
 let abortCtrl: AbortController | null = null;
 
+const seedMessage: AIMessage = {
+  id: "seed",
+  from: "ai",
+  text: "Hi — I'm Pal, your AI companion. I can answer questions about your procedure, fasting, medications, what to expect, and help you breathe through anxiety. What's on your mind?",
+  time: nowTime(),
+};
+
 let state = {
   open: false,
   voiceMode: false,
   voiceOverlay: false,
-  messages: [
-    {
-      id: "seed",
-      from: "ai",
-      text: "Hi — I'm Pal, your AI companion. I can answer questions about your procedure, fasting, medications, what to expect, and help you breathe through anxiety. What's on your mind?",
-      time: nowTime(),
-    },
-  ] as AIMessage[],
+  messages: [seedMessage] as AIMessage[],
   typing: false,
 };
+
+// Once-per-login flag. The auth context calls hydratePalHistory after each
+// successful sign-in and clearPalHistory on sign-out so we don't leak a
+// previous user's chat into a fresh session.
+let historyHydrated = false;
+
+type PalMessageRow = {
+  id: string;
+  role: "user" | "ai";
+  text: string;
+  actions: unknown;
+  created_at: string;
+};
+
+function formatTime(iso: string): string {
+  try {
+    return new Date(iso).toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  } catch {
+    return nowTime();
+  }
+}
+
+export async function hydratePalHistory() {
+  if (historyHydrated) return;
+  historyHydrated = true;
+  try {
+    const res = await fetch("/api/chat", { cache: "no-store" });
+    if (!res.ok) {
+      historyHydrated = false;
+      return;
+    }
+    const json = (await res.json()) as { messages?: PalMessageRow[] };
+    const rows = json.messages ?? [];
+    if (rows.length === 0) return;
+    const restored: AIMessage[] = rows.map((r) => ({
+      id: r.id,
+      from: r.role,
+      text: r.text,
+      time: formatTime(r.created_at),
+    }));
+    state = { ...state, messages: [seedMessage, ...restored] };
+    notify();
+  } catch {
+    historyHydrated = false;
+  }
+}
+
+export function clearPalHistory() {
+  historyHydrated = false;
+  state = { ...state, messages: [seedMessage] };
+  notify();
+}
 
 function nowTime() {
   return new Date().toLocaleTimeString([], {

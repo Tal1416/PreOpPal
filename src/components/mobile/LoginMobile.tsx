@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import GlassCard from "@/components/ui/GlassCard";
-import { DEMO_EMAIL, useAuth } from "@/lib/auth-context";
+import { DEMO_EMAIL, DEMO_PASSWORD, useAuth } from "@/lib/auth-context";
 
 type Mode = "login" | "signup";
 
@@ -13,7 +13,7 @@ export default function LoginMobile() {
   const router = useRouter();
   const params = useSearchParams();
   const next = params.get("next") || "/me";
-  const { signIn, isAuthenticated, hydrated } = useAuth();
+  const { signIn, signUp, isAuthenticated, hydrated } = useAuth();
 
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
@@ -28,23 +28,28 @@ export default function LoginMobile() {
     }
   }, [hydrated, isAuthenticated, next, router]);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
 
     if (mode === "signup") {
       if (!email.trim()) return setError("Enter an email.");
-      if (password.length < 4)
-        return setError("Password must be at least 4 characters.");
+      if (password.length < 6)
+        return setError("Password must be at least 6 characters.");
       if (password !== confirm) return setError("Passwords don't match.");
-      setError(
-        `Sign-up isn't connected yet. Use the demo account: ${DEMO_EMAIL} / 1234`
-      );
+      setSubmitting(true);
+      const result = await signUp(email, password);
+      setSubmitting(false);
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      router.replace(next);
       return;
     }
 
     setSubmitting(true);
-    const result = signIn(email, password);
+    const result = await signIn(email, password);
     setSubmitting(false);
     if (!result.ok) {
       setError(result.error);
@@ -55,7 +60,7 @@ export default function LoginMobile() {
 
   function fillDemo() {
     setEmail(DEMO_EMAIL);
-    setPassword("1234");
+    setPassword(DEMO_PASSWORD);
     setError(null);
   }
 
@@ -225,7 +230,8 @@ export default function LoginMobile() {
             <p className="text-[11.5px] text-on-surface-variant leading-snug">
               <span className="font-mono text-on-surface">{DEMO_EMAIL}</span>
               <br />
-              Password: <span className="font-mono text-on-surface">1234</span>
+              Password:{" "}
+              <span className="font-mono text-on-surface">{DEMO_PASSWORD}</span>
             </p>
             <button
               type="button"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import AnimatedNumber from "@/components/ui/AnimatedNumber";
@@ -9,24 +9,24 @@ import { careTeam, personalize, Task } from "@/data/content";
 import { tasksFor } from "@/data/procedure-customizations";
 import { useProfile } from "@/lib/profile-context";
 import { formatSurgeryDate } from "@/lib/date";
+import { useChecklist } from "@/lib/useChecklist";
 
 export default function DashboardMobile() {
   const { profile, readinessScore, hydrated, currentProcedure } = useProfile();
-  const [tasks, setTasks] = useState<Task[]>(() => tasksFor(profile.procedureId));
-  useEffect(() => {
-    setTasks(tasksFor(profile.procedureId));
-  }, [profile.procedureId]);
+  const { isChecked, setChecked } = useChecklist("task");
+
+  const tasks = useMemo<Task[]>(
+    () =>
+      tasksFor(profile.procedureId).map((t) =>
+        isChecked(t.id) ? { ...t, status: "done" } : t,
+      ),
+    [profile.procedureId, isChecked],
+  );
   const remaining = tasks.filter((t) => t.status !== "done").length;
   const score = hydrated ? readinessScore : profile.readinessScore;
 
   function toggle(id: string) {
-    setTasks((cur) =>
-      cur.map((t) =>
-        t.id === id
-          ? { ...t, status: t.status === "done" ? "pending" : "done" }
-          : t
-      )
-    );
+    setChecked(id, !isChecked(id));
   }
 
   const greetingName = profile.firstName?.trim() || "friend";
