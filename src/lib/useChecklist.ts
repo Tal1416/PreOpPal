@@ -5,6 +5,14 @@ import { useAuth } from "@/lib/auth-context";
 
 export type ChecklistKind = "bag" | "task" | "phase";
 
+// Pre-checked items shown in offline demo mode so the dashboard/bag feel
+// lived-in. Mirrors the items the seed script marks for the demo account.
+const DEMO_CHECKS: Record<ChecklistKind, string[]> = {
+  bag: ["id", "advance", "robe", "headphones"],
+  task: ["consent"],
+  phase: [],
+};
+
 type State = {
   /** Set of currently-checked item ids. */
   checked: Set<string>;
@@ -22,7 +30,7 @@ type State = {
  * (e.g. landing-page previews) so behavior is graceful.
  */
 export function useChecklist(kind: ChecklistKind): State {
-  const { isAuthenticated, hydrated: authHydrated } = useAuth();
+  const { isAuthenticated, hydrated: authHydrated, isDemo } = useAuth();
   const [checked, setChecked] = useState<Set<string>>(() => new Set());
   const [hydrated, setHydrated] = useState(false);
   // Avoid stale closure inside async handlers
@@ -31,6 +39,12 @@ export function useChecklist(kind: ChecklistKind): State {
 
   useEffect(() => {
     if (!authHydrated) return;
+    if (isDemo) {
+      // Offline demo: seed a few checked items in-memory; no API calls.
+      setChecked(new Set(DEMO_CHECKS[kind]));
+      setHydrated(true);
+      return;
+    }
     if (!isAuthenticated) {
       setChecked(new Set());
       setHydrated(true);
@@ -55,11 +69,12 @@ export function useChecklist(kind: ChecklistKind): State {
     return () => {
       cancelled = true;
     };
-  }, [authHydrated, isAuthenticated, kind]);
+  }, [authHydrated, isAuthenticated, isDemo, kind]);
 
   const persist = useCallback(
     async (itemId: string, nextChecked: boolean) => {
-      if (!isAuthenticated) return;
+      // Offline demo keeps toggles in-memory only — no backend to write to.
+      if (!isAuthenticated || isDemo) return;
       try {
         await fetch("/api/checklist", {
           method: "POST",
@@ -70,7 +85,7 @@ export function useChecklist(kind: ChecklistKind): State {
         console.warn("[checklist] persist failed", err);
       }
     },
-    [isAuthenticated, kind],
+    [isAuthenticated, isDemo, kind],
   );
 
   const setItem = useCallback(

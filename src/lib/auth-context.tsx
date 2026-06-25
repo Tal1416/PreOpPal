@@ -19,6 +19,13 @@ import { clearPalHistory, hydratePalHistory } from "@/components/ai/ai-store";
 export const DEMO_EMAIL = "demo@preoppal.app";
 export const DEMO_PASSWORD = "preop-demo";
 
+// Offline demo: when someone signs in with the demo credentials we mint a
+// purely local session (no Supabase round-trip) and the app runs on built-in
+// static data. This keeps the portfolio demo working anywhere — phone, any
+// machine — even if the Supabase backend is paused or unreachable.
+const DEMO_SESSION_KEY = "preoppal-demo-session";
+const DEMO_USER: AuthUser = { id: "demo-user", email: DEMO_EMAIL };
+
 export type AuthUser = { id: string; email: string };
 
 /** Back-compat shape: the rest of the codebase reads `session.email` and
@@ -36,6 +43,9 @@ type Ctx = {
   session: Session | null;
   hydrated: boolean;
   isAuthenticated: boolean;
+  /** True when the local, no-backend demo session is active. Consumers use
+   *  this to serve static data instead of hitting Supabase. */
+  isDemo: boolean;
   signIn: (email: string, password: string) => Promise<Result>;
   signUp: (email: string, password: string) => Promise<Result>;
   /**
@@ -55,12 +65,27 @@ const AuthCtx = createContext<Ctx | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [isDemo, setIsDemo] = useState(false);
   // Track signed-in-at locally — Supabase doesn't expose it directly. Falls
   // back to "now" on initial hydration if we discover an existing session.
   const signedInAtRef = useRef<string | null>(null);
 
   // Initial session check + subscribe to auth changes.
   useEffect(() => {
+    // Restore an offline demo session before any network work — this path
+    // never touches Supabase, so it works even when the backend is down.
+    try {
+      if (localStorage.getItem(DEMO_SESSION_KEY) === "1") {
+        setUser(DEMO_USER);
+        setIsDemo(true);
+        signedInAtRef.current = new Date().toISOString();
+        setHydrated(true);
+        return;
+      }
+    } catch {
+      // localStorage unavailable (SSR/private mode) — fall through to Supabase.
+    }
+
     let cancelled = false;
     const supabase = getBrowserClient();
 
@@ -102,6 +127,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = useCallback(
     async (email: string, password: string): Promise<Result> => {
+      // Offline demo account: mint a local session with no backend call so
+      // anyone can get into the dashboard even if Supabase is unreachable.
+      if (
+        email.trim().toLowerCase() === DEMO_EMAIL &&
+        password === DEMO_PASSWORD
+      ) {
+        try {
+          localStorage.setItem(DEMO_SESSION_KEY, "1");
+        } catch {
+          // ignore — session still works in-memory for this tab.
+        }
+        setUser(DEMO_USER);
+        setIsDemo(true);
+        signedInAtRef.current = new Date().toISOString();
+        return { ok: true };
+      }
+
       try {
         const res = await fetch("/api/auth/signin", {
           method: "POST",
@@ -194,6 +236,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const signOut = useCallback(async () => {
+    if (isDemo) {
+      // Offline demo: just drop the local session — nothing to sign out of.
+      try {
+        localStorage.removeItem(DEMO_SESSION_KEY);
+      } catch {
+        // ignore
+      }
+      setIsDemo(false);
+      setUser(null);
+      signedInAtRef.current = null;
+      clearPalHistory();
+      return;
+    }
     try {
       await fetch("/api/auth/signout", { method: "POST" });
     } catch {
@@ -202,7 +257,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     signedInAtRef.current = null;
     clearPalHistory();
-  }, []);
+  }, [isDemo]);
 
   const session: Session | null = useMemo(() => {
     if (!user) return null;
@@ -219,6 +274,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         session,
         hydrated,
         isAuthenticated: !!user,
+        isDemo,
         signIn,
         signUp,
         signInWithGoogle,

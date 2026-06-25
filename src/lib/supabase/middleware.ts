@@ -42,7 +42,15 @@ export async function updateSession(request: NextRequest) {
   // Do not put any code between them — it can cause users to be randomly
   // logged out. We don't need the result; the side effect (refreshing the
   // auth cookie) is the point.
-  await supabase.auth.getClaims();
+  //
+  // Wrapped in try/catch so an unreachable Supabase (e.g. a paused project)
+  // can't turn every page request into a 500. The offline demo session lives
+  // entirely client-side, so it doesn't depend on this succeeding.
+  try {
+    await supabase.auth.getClaims();
+  } catch {
+    // Backend unreachable — pass the request through untouched.
+  }
 
   // IMPORTANT: Return supabaseResponse as-is so the refreshed cookies make it
   // back to the browser.

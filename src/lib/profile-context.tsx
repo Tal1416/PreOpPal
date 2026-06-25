@@ -20,6 +20,9 @@ import { daysUntilSurgery, isISODate, toISODate } from "@/lib/date";
 import { useAuth } from "@/lib/auth-context";
 
 const STORAGE_KEY = "preoppal-profile-v1";
+// Where the offline demo persists its (locally-edited) profile so changes
+// survive a refresh without any backend.
+const DEMO_PROFILE_KEY = "preoppal-demo-profile-v1";
 
 type Ctx = {
   profile: Profile;
@@ -211,8 +214,12 @@ function flushMedicationsReplace(meds: Medication[]): void {
   void runMedicationsReplace();
 }
 
+/** The furnished profile shown in offline demo mode. Same lived-in data as the
+ *  seed, but already onboarded so the dashboard skips the onboarding overlay. */
+const demoBaseProfile: Profile = { ...seedProfile, onboardingComplete: true };
+
 export function ProfileProvider({ children }: { children: ReactNode }) {
-  const { isAuthenticated, hydrated: authHydrated } = useAuth();
+  const { isAuthenticated, hydrated: authHydrated, isDemo } = useAuth();
   const [profile, setProfileState] = useState<Profile>(seedProfile);
   const [hydrated, setHydrated] = useState(false);
   // Compare against this snapshot to detect medication-list identity changes.
@@ -221,6 +228,21 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   // Hydrate from /api/profile on login. Migrates localStorage on first run.
   useEffect(() => {
     if (!authHydrated) return;
+    if (isDemo) {
+      // Offline demo: serve the furnished profile, restoring any local edits.
+      // No Supabase fetch — works with the backend down.
+      let demoProfile = demoBaseProfile;
+      try {
+        const raw = localStorage.getItem(DEMO_PROFILE_KEY);
+        if (raw) demoProfile = { ...demoBaseProfile, ...JSON.parse(raw) };
+      } catch {
+        // ignore parse errors — fall back to the furnished default.
+      }
+      setProfileState(demoProfile);
+      medsSnapshotRef.current = demoProfile.medications;
+      setHydrated(true);
+      return;
+    }
     if (!isAuthenticated) {
       // Logged-out view falls back to the demo seed so the landing/marketing
       // surfaces still render polished content.
@@ -294,13 +316,19 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [authHydrated, isAuthenticated]);
+  }, [authHydrated, isAuthenticated, isDemo]);
 
   const updateProfile = useCallback(
     (patch: Partial<Profile>) => {
       setProfileState((p) => {
         const next = { ...p, ...patch };
-        if (isAuthenticated) {
+        if (isDemo) {
+          try {
+            localStorage.setItem(DEMO_PROFILE_KEY, JSON.stringify(next));
+          } catch {
+            // ignore quota / unavailable — edits still live in state.
+          }
+        } else if (isAuthenticated) {
           const scalarPatch: Partial<Profile> = {};
           for (const key of Object.keys(patch) as (keyof Profile)[]) {
             if (key === "medications" || key === "daysToSurgery") continue;
@@ -319,12 +347,21 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         return next;
       });
     },
-    [isAuthenticated],
+    [isAuthenticated, isDemo],
   );
 
   const setProfile = useCallback(
     (p: Profile) => {
       setProfileState(p);
+      if (isDemo) {
+        try {
+          localStorage.setItem(DEMO_PROFILE_KEY, JSON.stringify(p));
+        } catch {
+          // ignore — state still updated.
+        }
+        medsSnapshotRef.current = p.medications;
+        return;
+      }
       if (isAuthenticated) {
         const { medications, ...scalar } = p;
         void pushPatch(scalar);
@@ -334,7 +371,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         flushMedicationsReplace(medications);
       }
     },
-    [isAuthenticated],
+    [isAuthenticated, isDemo],
   );
 
   const setProcedure = useCallback(
